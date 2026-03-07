@@ -1,43 +1,74 @@
 # LLM Advisory Subsystem
 
-## Role
+## Role In The System
 
-The LLM subsystem is an optional decision-support layer for:
+The LLM is a secondary review layer, not the strategy engine.
 
-- sentiment scoring
-- narrative extraction
-- contextual risk flags
-- operator commentary
+It is used to:
 
-It is not an execution engine and cannot place orders directly.
+- read recent news for current paper candidates
+- generate structured sentiment and risk commentary
+- suggest `no_effect`, `caution`, `manual_review`, or `reduce_size`
+- save advisory history for operator review
 
-## Provider Design
+It is not used to:
 
-Default provider family:
+- build the fundamental universe
+- rank candidates
+- apply timing filters
+- create monthly target weights
+- place orders directly
 
-- Gemini low-latency, cost-aware configuration through an adapter
+## Default Mode
 
-Provider assumptions:
+The default mode is:
 
-- model ID is configured externally
-- fallback model is available through configuration
-- request timeout, retry, and budget caps are enforced
+- `observe_only`
 
-## Input Discipline
+In this mode:
 
-Inputs are bounded and structured:
+- advisories are generated and stored when possible
+- advisories appear in the workflow report and `make llm-report`
+- advisories do not change orders or target weights
 
-- curated text excerpts
-- symbol identifiers
-- deterministic strategy scores
-- optional recent price context
-- known event metadata
+## Workflow Integration
 
-The system avoids unbounded prompt stuffing and records prompt template versions.
+The LLM is integrated into `make workflow`.
 
-## Output Schema
+When you run the workflow, it:
 
-Each advisory payload includes:
+1. loads the latest backtest diagnostics
+2. loads the current Alpaca paper positions
+3. treats those symbols as the candidate set for narrative review
+4. loads recent news for those symbols
+5. runs advisory evaluation
+6. stores results in SQLite
+7. writes an LLM summary JSON and includes the results in the markdown workflow report
+
+After that:
+
+- `make llm-report` reads the saved advisory history from SQLite
+
+## Provider And Prompting
+
+Current default provider:
+
+- Gemini
+
+Current behavior:
+
+- Gemini is asked for schema-shaped JSON output
+- prompt templates live under `config/prompts/`
+- the adapter and schema layer attempt conservative repair of common alias-style fields such as `confidence` and `reasoning`
+
+Why this matters:
+
+- models can still return partial JSON even when instructed not to
+- only schema-valid payloads become saved advisories
+
+## Output Fields
+
+Saved advisory payloads normalize to:
 
 - `symbol`
 - `sentiment_score`
@@ -62,27 +93,43 @@ Supported modes:
 - `advisory_only`
 - `risk_modifier`
 
-Rules:
+Important safety rules:
 
-- low confidence or sparse evidence forces `no_effect`
-- malformed or unavailable output is ignored safely
-- bounded risk modifiers are deterministic and capped in code
-- every effect is logged with the original advisory record and policy outcome
+- malformed responses fail open
+- low confidence or low source coverage blocks influence
+- `reduce_size` is bounded and deterministic
+- manual-review flags are explicit
+- the LLM never submits orders
 
-## Auditability
+## How Operators Should Use It
 
-Persist:
+Treat LLM output as:
 
-- prompt template version
-- model name
-- response hash
-- parsed payload
-- cache hit or miss
-- downstream policy result
+- narrative context
+- recent-news interpretation
+- a manual review aid
 
-## Cost Control
+Do not treat it as:
 
-- local cache with TTL
-- per-day budget field
-- batch sizing limits
-- operator-visible report command
+- the primary stock selector
+- a replacement for backtest diagnostics
+- an autonomous trading engine
+
+Normal operator commands:
+
+```bash
+make workflow
+make llm-report
+```
+
+Useful outputs:
+
+- `results/opportunities/llm_workflow_latest.json`
+- SQLite advisory history via `make llm-report`
+
+## Known Limits
+
+- the LLM currently reviews current paper candidates, not the full ranked candidate universe
+- if no recent news is found, no advisory records are created
+- if Gemini credentials are missing, the workflow reports the provider as unavailable
+- if model output still fails schema validation, advisories are not saved

@@ -1,71 +1,184 @@
 # Operations Runbook
 
-## Default Mode
+## Default Operating Posture
 
-Initial deployment should run in:
+Run the system in this posture unless you are intentionally changing risk:
 
-- provider mode: `external_equivalent`
+- backtests: `cloud`
+- paper deployment target: `cloud`
 - paper broker: `alpaca`
-- default paper deployment target: `cloud`
 - LLM mode: `observe_only`
-- logging level: `DEBUG`
+- browser auto-open: disabled on the Pi
 
-This preserves auditability while preventing the advisory subsystem from affecting orders.
+This gives you:
 
-## Startup Sequence
+- the validated strategy path
+- visible paper execution
+- advisory reporting without trade influence
 
-1. Validate host dependencies with `make verify`
-2. Confirm `.env` exists with correct file permissions
-3. Confirm the SQLite database is reachable
-4. Check that the runtime lock is not already held
-5. Start cloud backtest or Alpaca paper mode
-6. Inspect `logs/app.log`, `logs/audit.jsonl`, and `logs/llm.log`
+## Daily Operator Checklist
 
-## Rebalance Safety
+### Before Market Open
 
-The runtime stores a rebalance key per month and strategy instance. On restart:
+Run from the repo root:
 
-- if the key already exists and completed successfully, the rebalance is skipped
-- if a prior attempt was interrupted, the operator can review the persisted intent hash and audit log before retry
+```bash
+cd /mnt/nvme_data/shared/quant_gpt
+make verify
+make test
+make paper-status
+make workflow
+make llm-report
+```
+
+Check:
+
+- tests still pass
+- paper deployment is still running
+- the workflow report still shows a healthy opportunity set
+- the LLM report is present and not broadly flagging caution or manual review across the paper basket
+
+### During The Day
+
+Use:
+
+```bash
+cd /mnt/nvme_data/shared/quant_gpt
+make paper-status
+make workflow
+```
+
+Check for:
+
+- unexpected paper-status changes
+- large paper position drift
+- a sudden drop in target count
+- LLM advisory summaries that turn broadly negative
+
+### After Strategy Or Config Changes
+
+Run:
+
+```bash
+cd /mnt/nvme_data/shared/quant_gpt
+make test
+make e2e
+make backtest
+./scripts/read_backtest_diagnostics.sh <backtest_id>
+```
+
+Use this before:
+
+- changing strategy logic
+- changing provider configuration
+- promoting a new baseline
+
+### When You Want To Freeze A Good Run
+
+```bash
+cd /mnt/nvme_data/shared/quant_gpt
+make baseline BACKTEST_ID=<backtest_id>
+```
+
+## How To Read The Workflow Report
+
+The workflow report is the main operator readout.
+
+It answers:
+
+- is the deterministic strategy still producing candidates?
+- is the current target basket healthy?
+- is paper deployment aligned with expectations?
+- does recent news justify caution, manual review, or no effect?
+
+Interpretation rules:
+
+- healthy opportunity set plus stable paper deployment means normal operating state
+- collapsing target count means investigate before trusting the deployment
+- `pending_prices`, `stale_data`, or empty target states mean strategy execution is impaired
+- broad LLM caution or manual review means narrative risk has increased even if deterministic signals still look fine
+
+## Backtest Review Routine
+
+When reviewing a new backtest, check:
+
+- `Return`
+- `Net Profit`
+- `Drawdown`
+- `reported_total_orders`
+- `closed_trade_count`
+- `LastSuccessfulTargetCount`
+- `LastRebalanceCheckState`
+
+Command flow:
+
+```bash
+cd /mnt/nvme_data/shared/quant_gpt
+make backtest
+./scripts/read_backtest_diagnostics.sh <backtest_id>
+```
+
+## Paper Deployment Routine
+
+Normal commands:
+
+```bash
+cd /mnt/nvme_data/shared/quant_gpt
+make paper-check
+make paper-status
+```
+
+To stop paper:
+
+```bash
+cd /mnt/nvme_data/shared/quant_gpt
+make paper-stop
+```
+
+Emergency liquidation:
+
+```bash
+cd /mnt/nvme_data/shared/quant_gpt
+make paper-liquidate
+```
 
 ## Failure Handling
 
-### LLM Failure
+### Cloud Backtest Or Paper Deploy Fails
 
-Expected behaviour:
+Check:
 
-- advisory request timeout or validation failure is logged
-- deterministic strategy continues unchanged
-- policy gate returns `no_effect`
+- `lean whoami`
+- `./scripts/list_qc_projects.sh`
+- `./scripts/list_qc_nodes.sh`
+- project id, organization id, and node settings in `.env`
 
-### Provider Failure
+### Workflow Shows No Advisories
 
-Expected behaviour:
+Check:
 
-- stale data checks block rebalance if required market data is missing
-- provider adapter emits structured error context
-- operator review is required before enabling live mode again
+- `make llm-report`
+- `results/opportunities/llm_workflow_latest.json`
+- Gemini credentials
+- whether recent news was available for the current paper symbols
 
-### Duplicate Launch
+### Lock Problems
 
-The process lock under `state/runtime.lock` prevents concurrent local runs. Remove it only after confirming the owning process is gone.
+For runtime locks:
 
-## Audit Review
+- inspect the owning process before removing `state/runtime.lock`
 
-Critical audit artefacts:
+For Git locks:
 
-- rebalance key
-- selected symbols
-- fundamental and timing scores
-- target weights
-- order events
-- advisory payloads and downstream policy effects
+- inspect running Git processes before removing `.git/index.lock`
 
-## Recovery Procedure
+## Preferred Diagnostics
 
-1. Stop the active process
-2. Inspect recent logs
-3. Review last rebalance record in SQLite
-4. Confirm data freshness and provider health
-5. Re-run smoke tests if the failure involved configuration drift
-6. Restart in Alpaca paper mode first if the incident touched execution or provider credentials
+QuantConnect cloud logs are not the primary diagnostics source for this repo.
+
+Prefer:
+
+- `results/backtests/cloud/<backtest_id>.json`
+- `results/opportunities/trade_workflow_<timestamp>.md`
+- `results/opportunities/llm_workflow_latest.json`
+- `make llm-report`

@@ -1,179 +1,367 @@
-# Quickstart
+# User Guide
 
-This guide explains the normal operator workflow for the repository under `/mnt/nvme_data/shared/quant_gpt`.
+This guide explains how to use `quant_gpt` day to day on the Pi.
 
-## What This App Does
-
-This repository is a local control plane and LEAN-compatible workspace for a quality-growth US equities strategy.
-
-The default operating model is:
-
-- backtests in `QuantConnect cloud`
-- first paper deployment through `Alpaca paper`
-- optional local fallback data stack using `Massive + SEC + Alpaca + Alpha Vantage`
-- optional LLM advisory running in `observe_only` mode unless you explicitly tighten or enable influence
-
-## Repository Entry Points
-
-Use these commands from the repository root:
+Run all commands from the repo root unless stated otherwise:
 
 ```bash
 cd /mnt/nvme_data/shared/quant_gpt
 ```
 
-Primary commands:
+## What You Built
 
-- `make setup`
-  - bootstraps the Pi host, creates `.venv`, and installs Python tooling
-- `make env`
-  - creates or updates `.env`
+`quant_gpt` combines:
+
+- a deterministic quality-growth stock-selection strategy
+- QuantConnect cloud backtesting
+- QuantConnect cloud paper trading with Alpaca brokerage
+- local operator reporting and regression tooling
+- an optional LLM advisory layer used for narrative review
+
+Validated default operating model:
+
+- backtests: QuantConnect cloud
+- paper trading: QuantConnect cloud + Alpaca paper
+- operator reports: local on the Pi
+- LLM mode: `observe_only`
+
+## The Commands You Will Use Most
+
+```bash
+make verify
+make test
+make backtest
+make workflow
+make llm-report
+make paper-check
+make live-paper
+make paper-status
+make paper-stop
+make e2e
+```
+
+What they mean:
+
 - `make verify`
-  - checks Python, imports, shell scripts, and pytest collection
+  - checks Python, imports, script syntax, and test discovery
 - `make test`
   - runs the full regression suite
-- `make smoke`
-  - runs a fast control-plane smoke test
-- `make llm-smoke`
-  - runs LLM contract and health checks
 - `make backtest`
-  - runs the default `lean cloud backtest` flow
+  - runs the validated cloud backtest path
+- `make workflow`
+  - builds the operator opportunity report and LLM advisory review
+- `make llm-report`
+  - prints saved LLM advisories from SQLite
+- `make paper-check`
+  - validates Alpaca paper credentials and account reachability
 - `make live-paper`
-  - runs the default `lean cloud live deploy` flow for `Alpaca paper`
+  - starts the cloud paper deployment
+- `make paper-status`
+  - shows whether the paper deployment is running
+- `make paper-stop`
+  - stops the paper deployment
 - `make e2e`
-  - runs the end-to-end validation harness with non-destructive defaults
+  - runs the end-to-end validation harness
 
 ## First-Time Setup
 
-### 1. Bootstrap the machine
+### 1. Bootstrap The Environment
 
 ```bash
 make setup
 ```
 
-This should:
+Expected result:
 
-- validate the Pi host
-- create `.venv`
-- install Python dependencies
-- install or validate LEAN CLI support
+- `.venv` is created
+- Python dependencies are installed
+- LEAN CLI is installed or validated
 
-### 2. Create the environment file
+### 2. Create `.env`
 
 ```bash
 make env
 ```
 
-Recommended values for the first working setup:
+Recommended starting values:
 
 - `BACKTEST_MODE=cloud`
 - `PAPER_DEPLOYMENT_TARGET=cloud`
 - `PAPER_BROKER=alpaca`
 - `PAPER_ENVIRONMENT=paper`
-- `QUANT_GPT_PROVIDER_MODE=external_equivalent`
-- `LOCAL_FUNDAMENTALS_PROVIDER=massive_sec_alpha_vantage`
-- `LOCAL_DAILY_BARS_PROVIDER=alpaca`
-- `NEWS_PROVIDER_MODE=composite`
+- `LEAN_BACKTEST_PROJECT=QualityGrowthPi`
+- `LEAN_BACKTEST_PROJECT_ID=<your_project_id>`
+- `QC_CLOUD_FILE_SYNC=true`
+- `LEAN_CLOUD_OPEN_RESULTS=false`
+- `LEAN_CLOUD_OPEN_PAPER=false`
 - `LLM policy mode=observe_only`
 
-Leave provider keys blank if you are not using that provider yet. The deterministic strategy still works without the optional LLM and local-fallback providers being fully enabled.
+Safety defaults to keep:
 
-### 3. Verify the install
+- `LLM policy mode=observe_only`
+- `PAPER_ENVIRONMENT=paper`
+- cloud backtests enabled
+- no local backtest mode unless you intentionally have the required licensed data
+
+### 3. Validate Before Trusting Anything
 
 ```bash
 make verify
-```
-
-Expected outcome:
-
-- Python interpreter is detected correctly
-- `.venv` is preferred if present
-- required packages import
-- tests are discoverable
-- shell scripts parse cleanly
-
-### 4. Run the test suite
-
-```bash
 make test
-```
-
-You should see the full suite pass before trying backtests or paper deployment.
-
-## Day-One Validation
-
-### Fast smoke test
-
-```bash
-make smoke
-```
-
-This runs:
-
-- `python -m src.main health`
-- `python -m src.main provider-plan`
-- a focused scoring/timing test subset
-
-### LLM smoke test
-
-```bash
-make llm-smoke
-```
-
-Use this even if the LLM remains non-trading. It verifies:
-
-- schema contracts
-- prompt loading
-- fail-open behavior
-- health-check wiring
-
-### End-to-end pipeline test
-
-```bash
 make e2e
 ```
 
-Default behavior:
+If these are not green, fix them before trusting backtests or paper trading.
 
-- uses an isolated runtime root under `results/e2e/runtime`
-- runs verification, data-directory prep, control-plane checks, smoke tests, LLM checks, and the full regression suite
-- validates SQLite WAL state, provider-plan resolution, fixture news ingestion, and LEAN workspace sync when available
-- performs backtest and paper-deployment preflight only, then aborts safely before execution
+## Common Use Cases
 
-Optional online mode:
+### Use Case 1: Morning Health Check
+
+Use this when:
+
+- the Pi restarted
+- you updated code
+- you changed config
+- you want to confirm the paper deployment is still healthy
+
+Commands:
 
 ```bash
-./scripts/run_e2e.sh --online
+make verify
+make test
+make paper-status
 ```
 
-Optional execution mode:
+### Use Case 2: Run A Fresh Backtest
+
+Use this when:
+
+- you changed strategy code
+- you changed provider settings
+- you want a fresh validation before paper trading
+
+Commands:
 
 ```bash
-./scripts/run_e2e.sh --online --run-cloud-backtest
-./scripts/run_e2e.sh --online --run-paper-deploy
+make backtest
+./scripts/read_backtest_diagnostics.sh <backtest_id>
 ```
 
-Those execution flags are intentionally explicit and still prompt for operator confirmation.
+What to inspect:
 
-### Capture A Cloud Regression Baseline
+- return
+- drawdown
+- total orders
+- closed trades
+- `LastSuccessfulTargetCount`
+- `LastRebalanceCheckState`
 
-After a successful cloud backtest, save the structured artefacts into the LEAN workspace regression bundle:
+### Use Case 3: Review Current Market Opportunities
+
+Use this when:
+
+- you want to know what the strategy currently likes
+- you want to compare the cloud backtest output to current paper positions
+- you want recent-news commentary on current paper symbols
+
+Commands:
+
+```bash
+make workflow
+make llm-report
+```
+
+Outputs:
+
+- markdown report:
+  - `results/opportunities/trade_workflow_<timestamp>.md`
+- LLM summary JSON:
+  - `results/opportunities/llm_workflow_latest.json`
+
+What the workflow report includes:
+
+- fundamental universe settings
+- ranking rules
+- timing filters
+- current backtest validation summary
+- current Alpaca paper positions
+- LLM advisory review of the current paper candidates
+
+### Use Case 4: Start Alpaca Paper Trading
+
+Use this when:
+
+- backtests are healthy
+- Alpaca paper credentials are configured
+- a QuantConnect live node is available
+
+Commands:
+
+```bash
+make paper-check
+./scripts/list_qc_nodes.sh
+make live-paper
+make paper-status
+```
+
+Important note:
+
+- the first cloud paper deployment may print a QuantConnect authorization URL that you need to open in a browser to authorize the Alpaca connection
+
+### Use Case 5: Stop Paper Trading
+
+Use this when:
+
+- the workflow report deteriorates
+- you see unexpected position drift
+- the broker or deployment looks unhealthy
+
+Commands:
+
+```bash
+make paper-stop
+```
+
+Emergency liquidation:
+
+```bash
+make paper-liquidate
+```
+
+### Use Case 6: Capture A Regression Baseline
+
+Use this after a successful cloud backtest that you want to preserve as a reference point.
+
+Commands:
 
 ```bash
 ./scripts/read_backtest_diagnostics.sh <backtest_id>
 make baseline BACKTEST_ID=<backtest_id>
 ```
 
-This writes a baseline bundle under:
+Outputs:
 
+- `results/backtests/cloud/<backtest_id>.json`
 - `lean_workspace/QualityGrowthPi/tests/regression/cloud_baselines/<backtest_id>/`
+- updated `lean_workspace/QualityGrowthPi/tests/regression/baseline_manifest.json`
 
-And updates:
+## Examples
 
-- `lean_workspace/QualityGrowthPi/tests/regression/baseline_manifest.json`
+### Example: Normal Morning Operator Flow
 
-## How To Inspect The App
+```bash
+cd /mnt/nvme_data/shared/quant_gpt
+make verify
+make paper-status
+make workflow
+make llm-report
+```
 
-The local control-plane entrypoint is [src/main.py](/Volumes/PiShare/quant_gpt/src/main.py).
+### Example: Validate A Code Change Before Trusting Paper
+
+```bash
+cd /mnt/nvme_data/shared/quant_gpt
+make test
+make e2e
+make backtest
+./scripts/read_backtest_diagnostics.sh <backtest_id>
+make baseline BACKTEST_ID=<backtest_id>
+```
+
+### Example: Restart Paper After A Config Change
+
+```bash
+cd /mnt/nvme_data/shared/quant_gpt
+make paper-stop
+make paper-check
+make live-paper
+make paper-status
+```
+
+### Example: Get A Manual Opportunity Review Before Market Open
+
+```bash
+cd /mnt/nvme_data/shared/quant_gpt
+make workflow
+make llm-report
+sed -n '1,220p' results/opportunities/trade_workflow_*.md
+```
+
+### Example: Run The Workflow And Force A Fresh Backtest First
+
+```bash
+cd /mnt/nvme_data/shared/quant_gpt
+./scripts/run_trade_workflow.sh --run-backtest
+```
+
+### Example: Reuse A Known Backtest And Capture It As A Baseline
+
+```bash
+cd /mnt/nvme_data/shared/quant_gpt
+./scripts/run_trade_workflow.sh --backtest-id <backtest_id> --capture-baseline
+```
+
+## How To Read The Workflow Report
+
+The workflow report is the main operator summary.
+
+If it says the opportunity set is healthy, that means:
+
+- the deterministic universe, ranking, and timing path produced a real target basket
+- the latest cloud backtest diagnostics are valid
+- the current paper deployment can be interpreted normally
+
+It does not mean:
+
+- the LLM is selecting stocks
+- the LLM is placing orders
+
+The LLM remains a secondary narrative and risk layer.
+
+### How To Use The LLM Section
+
+The LLM section tells you:
+
+- whether recent news was available
+- whether Gemini returned usable advisories
+- whether any holdings were flagged as `caution`, `manual_review`, or `reduce_size`
+
+In the default `observe_only` mode:
+
+- advisories are stored and shown
+- they do not change orders
+
+### How To Use The Paper Positions Section
+
+Treat the current Alpaca paper positions as the operational view of what the deployed strategy currently wants to hold.
+
+If the workflow report and current paper positions look inconsistent, investigate before trusting the deployment.
+
+## Helpful Files
+
+Important outputs:
+
+- cloud backtest diagnostics:
+  - `results/backtests/cloud/<backtest_id>.json`
+- workflow reports:
+  - `results/opportunities/trade_workflow_<timestamp>.md`
+- LLM workflow summary:
+  - `results/opportunities/llm_workflow_latest.json`
+- e2e outputs:
+  - `results/e2e/`
+
+Useful scripts:
+
+- `scripts/read_backtest_diagnostics.sh`
+- `scripts/run_trade_workflow.sh`
+- `scripts/check_alpaca_paper.sh`
+- `scripts/paper_status.sh`
+- `scripts/list_qc_nodes.sh`
+- `scripts/llm_report.sh`
+
+## Control Plane Commands
+
+The local control-plane entrypoint is `src/main.py`.
 
 Useful commands:
 
@@ -188,182 +376,17 @@ python -m src.main provider-plan
 What they do:
 
 - `health`
-  - initializes logging, state store, runtime lock, and emits a startup heartbeat
+  - initializes logging, runtime lock, and heartbeat
 - `init-db`
-  - initializes the SQLite state store under `state/`
+  - initializes the SQLite state store
 - `provider-plan`
-  - prints the resolved plan for backtest, paper broker, and local fallback providers
+  - prints the resolved backtest, paper, and local provider plan
 - `llm-report`
-  - prints the latest advisory records from SQLite
-
-## Backtesting Workflow
-
-The repository default is `QuantConnect cloud`.
-
-Run:
-
-```bash
-make backtest
-```
-
-What happens:
-
-1. `.env` is loaded
-2. LEAN CLI is checked
-3. `lean_workspace/lean.json` is synced from local config
-4. you are prompted for confirmation
-5. the repo runs `lean cloud backtest QualityGrowthPi --push` by default
-
-Use this mode when you want:
-
-- QuantConnect-hosted historical data
-- no local LEAN data downloads
-- the local repository to remain the source of truth
-
-If you intentionally want local backtests later, set `BACKTEST_MODE=local` and provide the required local datasets first.
-
-## Paper Trading Workflow
-
-The repository default first paper stage is `Alpaca paper` via LEAN cloud deployment.
-
-Before running paper deployment, ensure `.env` contains:
-
-- `ALPACA_API_KEY`
-- `ALPACA_API_SECRET`
-- `PAPER_BROKER=alpaca`
-- `PAPER_ENVIRONMENT=paper`
-
-Run:
-
-```bash
-make live-paper
-```
-
-What happens:
-
-1. `.env` is loaded
-2. LEAN CLI is checked
-3. Alpaca credentials are validated
-4. `lean_workspace/lean.json` is synced
-5. you are prompted for confirmation
-6. the repo runs `lean cloud live deploy` for the `QualityGrowthPi` project
-
-This is the recommended first brokered stage before any real-money workflow.
-
-## Local Fallback Data Stack
-
-If you later need local provider-backed operation instead of full QuantConnect-hosted data, the intended first stack is:
-
-- `Massive` for structured market and financial data
-- `SEC` for public filing-derived fundamentals and validation
-- `Alpaca` for daily bars and execution alignment
-- `Alpha Vantage` for enrichment, news, and fallback reference data
-
-Useful local cache locations:
-
-- `/mnt/nvme_data/shared/quant_gpt/data/market_cache/massive/`
-- `/mnt/nvme_data/shared/quant_gpt/data/market_cache/sec/`
-- `/mnt/nvme_data/shared/quant_gpt/data/market_cache/alpha_vantage/`
-- `/mnt/nvme_data/shared/quant_gpt/data/market_cache/alpaca/`
-- `/mnt/nvme_data/shared/quant_gpt/data/news_cache/`
-
-Prepare those directories with:
-
-```bash
-./scripts/download_data.sh
-```
-
-That script prepares the cache layout even when backtests remain cloud-based.
-
-## Logs, State, And Results
-
-Key runtime directories:
-
-- `logs/`
-  - rotating application, audit, and advisory logs
-- `state/`
-  - SQLite database and lock/state artifacts
-- `results/`
-  - backtest outputs and generated reports
-- `data/`
-  - provider caches, news feeds, and LLM caches
-
-Useful operator checks:
-
-```bash
-ls -lah logs
-ls -lah state
-ls -lah results
-```
-
-## Typical Operator Workflows
-
-### Clean install on a Pi
-
-```bash
-cd /mnt/nvme_data/shared/quant_gpt
-make setup
-make env
-make verify
-make test
-make smoke
-make llm-smoke
-```
-
-### Run a cloud backtest
-
-```bash
-cd /mnt/nvme_data/shared/quant_gpt
-make backtest
-```
-
-### Inspect current runtime plan
-
-```bash
-cd /mnt/nvme_data/shared/quant_gpt
-. .venv/bin/activate
-python -m src.main provider-plan
-```
-
-### Start the first Alpaca paper deployment
-
-Before the first deployment, validate Alpaca and select a QuantConnect live node:
-
-```bash
-cd /mnt/nvme_data/shared/quant_gpt
-./scripts/check_alpaca_paper.sh
-./scripts/list_qc_nodes.sh
-```
-
-Set `LEAN_CLOUD_PAPER_NODE` in `.env` to the chosen node id or node name, then deploy:
-
-```bash
-cd /mnt/nvme_data/shared/quant_gpt
-make live-paper
-```
-
-Monitor or stop the deployment from the same repo:
-
-```bash
-cd /mnt/nvme_data/shared/quant_gpt
-make paper-status
-make paper-stop
-# or: make paper-liquidate
-```
-
-## Safe Defaults
-
-For the first deployment, keep these safety properties:
-
-- `LLM policy mode=observe_only`
-- `PAPER_ENVIRONMENT=paper`
-- cloud backtests enabled
-- no live broker path unless you explicitly decide to use it
-- no local backtest mode unless you have the required licensed data
+  - prints the latest stored advisory records
 
 ## Common Problems
 
-### `make verify` fails because `pytest` is missing
+### `make verify` fails because `pytest` or another dependency is missing
 
 Re-run:
 
@@ -390,22 +413,57 @@ grep '^LEAN_ORGANIZATION_ID=' .env
 grep -n '"job-organization-id"' lean_workspace/lean.json
 ```
 
-The organization id must be the real QuantConnect org id, not a display name.
+The organization id must be the real QuantConnect organization id, not a display name.
 
-### LLM smoke tests fail after editing `.env`
+### `make llm-report` shows `[]`
 
-Re-run:
+This means no advisory records are stored yet.
+
+Run:
 
 ```bash
-make env
-make llm-smoke
+make workflow
+cat results/opportunities/llm_workflow_latest.json
 ```
 
-The setup script writes `.env` safely and avoids shell-parsing issues with spaced values.
+Common causes:
 
-## Next Docs
+- no recent news
+- Gemini credentials missing
+- no current paper positions
+- model output failed schema validation
 
-Use these when moving beyond quickstart:
+### Cloud logs are not available
+
+This is a known practical limit in the current workflow.
+
+Use:
+
+- `./scripts/read_backtest_diagnostics.sh <backtest_id>`
+- the saved diagnostics JSON
+- the workflow report
+
+instead of relying on `lean logs`.
+
+### QuantConnect node errors in paper deploy
+
+Run:
+
+```bash
+./scripts/list_qc_nodes.sh
+```
+
+Then set:
+
+- `LEAN_CLOUD_PAPER_NODE=<node_id_or_name>`
+
+### Git lock errors
+
+If you hit `.git/index.lock`, confirm no Git process is running and then remove the stale lock file before retrying.
+
+## Where To Go Next
+
+Use these docs when you want more depth:
 
 - [docs/deployment.md](/Volumes/PiShare/quant_gpt/docs/deployment.md)
 - [docs/operations.md](/Volumes/PiShare/quant_gpt/docs/operations.md)

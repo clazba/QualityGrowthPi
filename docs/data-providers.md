@@ -1,116 +1,191 @@
-# Data Providers and Fidelity Caveats
+# Data Providers
 
-## Goal
+## Provider Plan In Practice
 
-Preserve the original QuantConnect strategy behaviour as closely as possible while acknowledging that external self-hosted environments may not replicate every licensed data source or point-in-time transformation exactly.
+The repo uses different providers for different jobs.
 
-## Supported Modes
+Validated default roles:
 
-### QuantConnect Local Compatible Mode
+- backtests: `QuantConnect cloud`
+- paper deployment: `QuantConnect cloud + Alpaca brokerage`
+- local fallback stack: `Massive + SEC + Alpaca + Alpha Vantage`
+- LLM advisory provider: `Gemini`
 
-Use this mode when the operator has LEAN CLI access and appropriate local datasets.
+This separation is deliberate. It keeps the strategy-validation path close to the original QuantConnect implementation while still giving the operator local data and reporting tools.
 
-Strengths:
+## Source Of Truth vs Fallbacks
 
-- best path toward matching LEAN universe and corporate action behaviour
-- direct compatibility with workspace-driven backtests
+### Source Of Truth For Strategy Validation
 
-Risks:
+Use QuantConnect cloud when you care about:
 
-- local data licensing and availability
-- exact Morningstar field equivalence may depend on dataset packages
+- backtest fidelity
+- dynamic fundamental universe behavior
+- the validated paper deployment path
 
-### QuantConnect Cloud Backtest Mode
+This is the current default and recommended path.
 
-Use this mode when the goal is to preserve QuantConnect dataset behaviour for backtests without downloading local copies of the datasets.
+### Local Fallbacks For Operator Work
 
-Strengths:
+Use the local fallback providers when you care about:
 
-- best cost-to-fidelity option for this repository's backtesting workflow
-- keeps the repository on-prem while pushing the local LEAN project for remote execution
-- avoids local dataset download charges and local data maintenance
+- inspecting current paper holdings locally
+- enriching the operator workflow with news and narrative context
+- researching outside the cloud execution path
+- preparing for an optional later local approximation path
 
-Risks:
+Do not treat the local fallback stack as a strict parity replacement for QuantConnect cloud.
 
-- still depends on QuantConnect cloud availability and organization entitlements
-- code is executed remotely for cloud backtests, so this is not an offline workflow
-- local live or local backtest parity still requires separate validation if local execution is later enabled
+## Provider Roles
 
-### Repository Default Local Fallback Stack
+### QuantConnect Cloud
 
-The repository's first local fallback stack is:
+Used for:
 
-- `fundamentals`: Massive + SEC + Alpha Vantage
-- `daily bars`: Alpaca, with Massive and Alpha Vantage as fallbacks
-- `news`: composite provider using local file cache, Alpha Vantage, and Massive
-
-Strengths:
-
-- aligns with the lowest-cost staged deployment decision for this repository
-- keeps free/public SEC data in the loop for validation and cache building
-- uses Alpaca for the first paper-broker path and local daily-bar fallback
-
-Risks:
-
-- still drifts from QuantConnect/Morningstar point-in-time behavior
-- depends on local cache population for fundamentals snapshots
-- Alpha Vantage and Massive remain auxiliary for local live approximation, not parity-grade substitutes
-
-### External Equivalent Mode
-
-Use this mode when local QuantConnect-compatible data is unavailable.
+- cloud backtests
+- cloud paper deployment
+- QuantConnect-hosted live and historical data in the first paper stage
 
 Strengths:
 
-- allows local development and partial validation
-- can support operator workflows and advisory enrichment
+- closest behavior to the original strategy
+- no local LEAN dataset downloads required for normal cloud backtests
+- least operator burden for initial paper deployment
 
-Risks:
+Trade-off:
 
-- fundamental field definitions may drift from Morningstar
-- point-in-time correctness may be weaker
-- symbol mapping and corporate action handling must be validated explicitly
-- Massive's deprecated experimental financials endpoint should not be used for new integrations; prefer the current `/stocks/financials/v1/*` endpoints and `v2/reference/news`
+- the execution host is remote, not fully on-prem
 
-### Paper / Live Execution Mode
+### Alpaca
 
-Execution adapters are isolated from the strategy layer. Paper mode is the required first live stage; live broker usage remains opt-in and explicitly warned.
+Used for:
 
-## Fidelity Risk Register
+- paper brokerage execution
+- local inspection of account and current positions
+- local fallback daily bars
 
-The following items must be validated before claiming behavioural parity:
+Strengths:
 
-- `fundamental definitions`: ROE, gross margin, debt/equity, growth rates, PE, and PEG may not match provider formulas exactly
-- `point-in-time accuracy`: late-restated filings can change historical values
-- `symbol mapping`: ticker changes, delistings, and mergers require robust security master data
-- `corporate actions`: splits and dividends must be reflected consistently in price history and holdings
-- `survivorship bias`: alternative datasets often exclude dead symbols
-- `live timing drift`: web APIs can lag compared with institutional feeds
-- `rate limits`: external APIs can induce partial datasets or retries
+- clean paper brokerage API
+- simple account and positions inspection
+- useful daily-bar source for local operator tooling
 
-## Validation Plan
+Trade-off:
 
-1. Capture baseline QuantConnect backtest artefacts
-2. Re-run locally with the same parameters
-3. Compare:
-   - monthly universe snapshots
-   - ranked candidate tables
-   - target weights
-   - holdings transitions
-   - order event timelines
-4. Log all material deviations with the identified provider cause
+- not a full replacement for QuantConnect's fundamental and universe data stack
 
-## News and LLM Inputs
+### Massive
 
-The advisory subsystem accepts curated text inputs through a separate ingestion abstraction. This prevents the core strategy from being tightly coupled to any specific news vendor and keeps the advisory layer defeatable.
+Used for:
 
-## Massive Endpoint Notes
+- local fallback news
+- local fallback aggregates
+- local fallback financial ratios and income statements
 
-Current official Massive endpoint families relevant to this repository:
+Strengths:
 
-- `aggregates`: `/v2/aggs/ticker/...`
-- `news`: `/v2/reference/news`
-- `financial ratios`: `/stocks/financials/v1/ratios`
-- `income statements`: `/stocks/financials/v1/income-statements`
+- broad structured market-data surface
+- useful for operator review and approximation workflows
 
-The older experimental financials endpoint is deprecated by Massive and should not be used for fresh provider work.
+Trade-off:
+
+- still not exact Morningstar or QuantConnect parity
+
+Current endpoint families used or scaffolded:
+
+- aggregates: `/v2/aggs/ticker/...`
+- news: `/v2/reference/news`
+- ratios: `/stocks/financials/v1/ratios`
+- income statements: `/stocks/financials/v1/income-statements`
+
+The old experimental financials endpoint should not be used.
+
+### Alpha Vantage
+
+Used for:
+
+- local fallback news
+- local fallback fundamentals
+- redundancy in the operator workflow
+
+Strengths:
+
+- inexpensive supplemental data source
+- useful for news, narrative, and lightweight fallback enrichment
+
+Trade-off:
+
+- limited parity with the QuantConnect fundamental pipeline
+
+### SEC
+
+Used for:
+
+- local fallback fundamentals validation
+- public-data support in the approximation stack
+
+Strengths:
+
+- free and public
+- useful for validating and reconstructing fundamentals locally
+
+Trade-off:
+
+- requires normalization and does not reproduce QuantConnect point-in-time handling directly
+
+### Gemini
+
+Used for:
+
+- structured advisory generation in the operator workflow
+- schema-shaped narrative review of current paper candidates
+
+Strengths:
+
+- integrates into the saved operator workflow and `make llm-report`
+- provides a secondary narrative lens for active candidates
+
+Trade-off:
+
+- not part of the deterministic signal engine
+- advisory output is only useful when schema validation succeeds and recent news is available
+
+## Operator Workflow News Stack
+
+`make workflow` does not rely on a single news source.
+
+Current behavior:
+
+1. use the configured news provider first
+2. if the runtime provider is not already composite, add operator-side fallback providers
+3. merge and deduplicate recent news events across:
+   - local file cache
+   - Alpha Vantage
+   - Massive
+
+This matters because your runtime config may still say `NEWS_PROVIDER_MODE=file`, but the operator workflow should make best-effort use of online providers when reviewing current paper symbols.
+
+## Main Drift Risks Outside QuantConnect Cloud
+
+These are the main reasons local results can diverge from the validated cloud path:
+
+- different fundamental field definitions
+- different point-in-time update timing
+- ticker mapping and symbol-change behavior
+- splits and dividend treatment
+- survivorship differences
+- provider API latency, gaps, and rate limits
+
+## Practical Recommendation
+
+Use QuantConnect cloud when:
+
+- validating changes
+- capturing new baselines
+- running the first paper deployment
+
+Use the local fallback stack when:
+
+- you want operator-side research
+- you need narrative context for current paper holdings
+- you want approximation without buying local parity-grade LEAN datasets

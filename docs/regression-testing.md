@@ -1,51 +1,127 @@
-# Regression Testing Strategy
+# Regression Testing
 
-## Purpose
+## Goal
 
-The first production cut prioritizes behavioural preservation over speculative optimization. Regression scaffolding exists to compare local runs against later-captured QuantConnect baselines.
+Regression testing in this repo is about preserving validated strategy behavior while you improve tooling, workflow, or integrations.
 
-## Comparison Artefacts
+Main rule:
 
-Store or generate fixtures for:
+- do not change deterministic strategy behavior casually once a good cloud baseline exists
 
-- universe snapshots
-- fundamental ranking tables
-- timing score tables
-- rebalance intents
-- target weights
-- order event streams
-- holdings snapshots
-- sentiment snapshots
-- advisory outputs
-- policy influence decisions
+## What Counts As A Baseline
 
-## Test Categories
+A baseline is a completed QuantConnect cloud backtest whose diagnostics are saved locally and then captured into the regression bundle.
 
-### Unit
+Normal sequence:
 
-- pure scoring thresholds and ranking
-- timing overlays
+```bash
+make backtest
+./scripts/read_backtest_diagnostics.sh <backtest_id>
+make baseline BACKTEST_ID=<backtest_id>
+```
+
+This writes:
+
+- `results/backtests/cloud/<backtest_id>.json`
+- `lean_workspace/QualityGrowthPi/tests/regression/cloud_baselines/<backtest_id>/`
+
+And updates:
+
+- `lean_workspace/QualityGrowthPi/tests/regression/baseline_manifest.json`
+
+## Test Layers
+
+### Unit Tests
+
+Focus on:
+
+- scoring thresholds
+- ranking logic
+- timing logic
 - settings parsing
-- risk policy caps
+- provider adapters
+- workflow helper logic
+- LLM payload parsing and repair behavior
 
-### Integration
+Run:
 
-- SQLite schema setup and WAL settings
-- rebalance guard idempotency
-- restart recovery reads
-- provider and advisory cache metadata
+```bash
+make test
+```
 
-### LLM Contract
+### Integration Tests
 
-- schema validation
+Focus on:
+
+- SQLite schema and WAL behavior
+- rebalance idempotency
+- advisory persistence
+- LEAN workspace config validity
+
+### LLM Contract Tests
+
+Focus on:
+
 - prompt loading
-- fail-open behaviour when the provider is down
-- policy influence caps
+- schema validation
+- fail-open behavior
+- policy bounds
+- repair of common Gemini alias-style responses
 
-### Regression
+Run:
 
-Fixtures are intentionally small and deterministic. Once QuantConnect baseline artefacts are available, extend the regression folder with symbol-by-symbol comparison bundles.
+```bash
+make llm-smoke
+```
+
+### End-To-End Validation
+
+Focus on:
+
+- installation health
+- provider-plan resolution
+- state-store validation
+- workflow and script integrity
+- optional online provider probes
+
+Run:
+
+```bash
+make e2e
+./scripts/run_e2e.sh --online
+```
+
+## What To Compare When Strategy Logic Changes
+
+Compare these against the current baseline:
+
+- fine universe counts
+- ranked candidate counts
+- target counts
+- rebalance state
+- order counts
+- turnover
+- net profit and drawdown
+- current paper holdings drift if paper is already running
+
+For LLM-related changes, compare:
+
+- whether advisories are saved at all
+- advisory counts by symbol
+- caution and manual-review frequency
+- whether `observe_only` remains non-invasive
 
 ## Acceptance Rule
 
-Do not “improve” scoring or execution logic until a baseline comparison exists and the impact is measurable.
+Accept a change only when one of these is true:
+
+- behavior is materially unchanged versus the baseline
+- the behavior change is intentional and documented
+- the improvement is measurable and the operator accepts the trade-off
+
+## Practical Guidance
+
+- tooling-only changes can usually be accepted with green tests and e2e checks
+- deterministic strategy changes should be paired with a fresh cloud backtest review
+- provider changes should be checked with both tests and workflow output
+- LLM changes should preserve fail-open behavior and should not create hidden trade influence in `observe_only`

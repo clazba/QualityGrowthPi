@@ -1,206 +1,162 @@
-# Architecture Plan
+# Architecture
 
-## Objective
+## Overview
 
-Build a self-hosted, LEAN-compatible quant trading stack optimized for Raspberry Pi 5 ARM64 Linux, with all runtime state, logs, caches, and artefacts rooted under the project directory. The stack preserves the existing QuantConnect strategy behaviour as closely as practical while adding:
+`quant_gpt` is two systems working together:
 
-- local operational hardening
-- deterministic restart-safe execution
-- provider abstraction for data and execution
-- optional, auditable LLM advisory support
+- a local control plane on the Pi
+- a cloud-synced LEAN strategy project in `lean_workspace/QualityGrowthPi/`
 
-## Constraints
+The current validated operating model is:
 
-- Target hardware: Raspberry Pi 5, 8 GB RAM, ARM64 Linux
-- Preferred runtime: bare metal first
-- Docker: optional compatibility path only if required for LEAN engine execution
-- Secrets: environment-driven only, never committed
-- Data fidelity: first-class concern; documented drift where exact parity is not possible
-- Determinism: strategy outputs must remain reproducible without LLM influence
+- cloud backtests in QuantConnect
+- cloud paper deployment in QuantConnect with Alpaca as the brokerage
+- local operator validation, reporting, and persistence on the Pi
+- an optional LLM advisory layer used for narrative review, not primary signal generation
 
-## Repository Layers
+## Main Components
 
-### 1. Strategy Layer
+### Deterministic Strategy Engine
 
-Responsibilities:
+This is the source of truth for trade selection. It:
 
-- LEAN algorithm entrypoint and workspace integration
-- configuration-driven thresholds, weights, and portfolio construction
-- pure scoring and timing logic separated from LEAN runtime classes
-- deterministic rebalance intent generation
-- guarded integration point for optional LLM advisory features
+- builds the fundamental universe
+- ranks quality-growth candidates
+- applies timing filters
+- creates monthly target holdings
+- blocks rebalances when prices are missing or data is stale
 
-Modules:
+Key files:
 
 - `src/scoring.py`
 - `src/timing.py`
 - `src/risk_policy.py`
-- `src/main.py`
 - `lean_workspace/QualityGrowthPi/main.py`
+- `lean_workspace/QualityGrowthPi/scoring.py`
 
-### 2. Domain Layer
+### Local Control Plane
 
-Responsibilities:
+This handles local state, health checks, and reporting. It:
 
-- typed data contracts
-- no direct infrastructure concerns
-- minimal LEAN coupling
+- loads settings from YAML and `.env`
+- initializes and maintains the SQLite state store
+- emits audit records and runtime heartbeats
+- prints provider-plan and LLM history reports
 
-Key models:
+Key files:
 
-- fundamental snapshots
-- timing state
-- ranked candidates
-- rebalance intents
-- audit events
-- news items
-- sentiment features
-- narrative tags
-- advisory outputs
-- risk flags
-
-Modules:
-
-- `src/models.py`
-
-### 3. Infrastructure Layer
-
-Responsibilities:
-
-- settings and environment loading
-- SQLite WAL persistence
-- structured logging and audit trails
-- provider adapters and runtime abstractions
-- startup checks, health, locking, recovery
-- LLM adapters, schema validation, prompt loading, and cache metadata
-
-Modules:
-
+- `src/main.py`
 - `src/settings.py`
 - `src/state_store.py`
-- `src/logging_utils.py`
-- `src/audit.py`
 - `src/health.py`
-- `src/provider_adapters/*`
-- `src/sentiment/cache.py`
-- `src/sentiment/schemas.py`
+- `src/audit.py`
+- `src/logging_utils.py`
 
-### 4. Tooling Layer
+### Provider Layer
 
-Responsibilities:
+This isolates external systems so the rest of the repo can work against normalized interfaces.
 
-- Pi bootstrap and environment setup
-- install verification
-- backtest, paper trading, and live execution wrappers
-- smoke tests and LLM health checks
-- operator workflows
+Current provider roles:
 
-Modules:
+- QuantConnect cloud for validated backtests and paper execution hosting
+- Alpaca for paper brokerage and local account and position inspection
+- Massive, Alpha Vantage, and SEC for local fallback data and operator-side news and fundamental review
+- Gemini for structured advisory generation
 
-- `scripts/bootstrap_pi.sh`
-- `scripts/setup_env.sh`
-- `scripts/verify_install.sh`
+Key files:
+
+- `src/provider_adapters/`
+
+### Operator Workflow Layer
+
+This is the operator-facing glue. It can:
+
+- run a fresh cloud backtest
+- read cloud diagnostics
+- inspect paper deployment status
+- load current Alpaca paper positions
+- build a markdown opportunity report
+- run and persist LLM advisories for the current paper candidate set
+
+Key files:
+
 - `scripts/run_backtest.sh`
+- `scripts/read_backtest_diagnostics.sh`
 - `scripts/run_live_paper.sh`
-- `scripts/run_live_provider.sh`
-- `scripts/smoke_test.sh`
-- `scripts/llm_healthcheck.sh`
+- `scripts/paper_status.sh`
+- `scripts/run_trade_workflow.sh`
+- `src/operator_workflow.py`
 
-### 5. Testing Layer
+### LLM Advisory Layer
 
-Responsibilities:
+This layer is optional and secondary by design. It:
 
-- unit tests for pure logic
-- integration tests for persistence and runtime guards
-- regression scaffolding for later baseline comparison
-- LLM contract and fail-open tests
+- loads recent news for symbols under review
+- builds prompts from local templates
+- requests schema-shaped JSON from Gemini
+- validates and conservatively repairs common alias-style payloads
+- caches and stores advisory history in SQLite
 
-Modules:
+Key files:
 
-- `tests/unit/*`
-- `tests/integration/*`
-- `tests/regression/*`
-- `tests/llm/*`
+- `src/sentiment/advisory_engine.py`
+- `src/sentiment/prompt_builder.py`
+- `src/sentiment/schemas.py`
+- `src/sentiment/cache.py`
+- `src/sentiment/feature_store.py`
+- `config/prompts/`
 
-## Strategy Preservation Requirements
+## Validated Execution Flows
 
-The primary production algorithm must preserve these behaviours:
+### Cloud Backtest Flow
 
-- dynamic US equity fundamental universe
-- explicit `SPY` subscription for deterministic schedule anchoring
-- bootstrap history for timing state when new symbols join the universe
-- stale data protection before rebalance
-- restart-safe monthly rebalance idempotency
-- safer parameter parsing and externalized config
-- extracted pure scoring functions for unit testing
-- structured audit logs and order event logging
+1. Local config is synced into `lean_workspace/`.
+2. QuantConnect project files are synced by API.
+3. `lean cloud backtest` runs the strategy remotely.
+4. Local diagnostics are saved under `results/backtests/cloud/`.
 
-## Provider Model
+### Cloud Paper Flow
 
-The system will implement a provider abstraction with four modes:
+1. Alpaca paper credentials are checked locally.
+2. LEAN workspace and project config are synced.
+3. QuantConnect cloud live deploy starts the paper algorithm.
+4. Alpaca acts as the brokerage.
+5. Local scripts inspect deployment state and paper positions.
 
-1. `quantconnect_local`
-   - highest-fidelity mode when licensed local LEAN-compatible data is available
-2. `external_equivalent`
-   - approximate mode using external data providers
-3. `paper_trading`
-   - preferred live onboarding mode
-4. `llm_advisory`
-   - optional additive enrichment
+### Operator Workflow Flow
 
-Known fidelity risks to document and test:
+1. Latest backtest diagnostics are loaded.
+2. Current paper deployment status is loaded.
+3. Current Alpaca paper positions are loaded.
+4. Recent news is collected for the current symbols.
+5. LLM advisories are evaluated in `observe_only` mode by default.
+6. Markdown and JSON reports are written under `results/opportunities/`.
 
-- Morningstar field equivalence
-- point-in-time correctness
-- symbol mapping and ticker changes
-- split and dividend treatment
-- survivorship bias
-- live data latency drift
-- provider schema mismatches
+## Persistence
 
-## LLM Advisory Design
+The local SQLite database in WAL mode under `state/` stores:
 
-The LLM subsystem is advisory-only by default and must never place orders directly. It will:
+- rebalance guard state
+- audit events
+- LLM cache entries
+- LLM usage data
+- saved advisory history
 
-- ingest curated text/news inputs
-- produce schema-validated JSON outputs only
-- store prompts, response hashes, model names, parsed payloads, and downstream effects
-- support `observe_only`, `advisory_only`, and bounded `risk_modifier` modes
-- fail open so deterministic strategy execution continues if the LLM path is down
+Important property:
 
-The default model family will be configurable and adapter-driven, with Gemini 3.1 Flash-Lite Preview as the initial low-cost default when configured by the operator.
+- `make workflow` and `make llm-report` use the same database, so advisories saved during a workflow run are immediately available in the report command
 
-## Persistence and Recovery
+## Design Rules
 
-SQLite in WAL mode under `state/` will be used for:
+- deterministic strategy logic remains primary
+- the LLM never places orders directly
+- malformed or missing LLM output must fail open
+- cloud backtests are the default fidelity path
+- cloud Alpaca paper is the first brokered validation stage
+- local fallback providers are for approximation and operator support, not exact QuantConnect parity
 
-- rebalance idempotency
-- holdings snapshots
-- audit event storage
-- provider cache metadata
-- advisory history
-- LLM cache metadata
+## Current Practical Limits
 
-Operational controls:
-
-- single-process runtime lock
-- startup banner and heartbeat
-- bounded retries and timeouts
-- graceful shutdown hooks
-- advisory cache pruning
-
-## Implementation Sequence
-
-1. Create planning docs first
-2. Scaffold repository layout and baseline configs
-3. Implement pure Python domain and strategy logic
-4. Implement persistence, logging, and provider abstractions
-5. Implement LEAN workspace entrypoint and sync-friendly shared code usage
-6. Implement LLM advisory subsystem and safety policy gates
-7. Implement operational scripts
-8. Implement tests and fixtures
-9. Run sanity checks and repair failures
-
-## Deliverable Standard
-
-Every generated file must contain meaningful initial content. Credential-dependent sections may remain inert until the operator supplies local secrets or data licenses, but the repository itself must be runnable for local validation, tests, and smoke checks without hidden placeholders.
+- QuantConnect CLI cloud log retrieval is unreliable, so saved diagnostics JSON is the preferred inspection path
+- cloud paper deployment requires a QuantConnect live node even when Alpaca is the broker
+- the local fallback stack is useful for operator review and staged local approximation, not strict Morningstar or QuantConnect parity
