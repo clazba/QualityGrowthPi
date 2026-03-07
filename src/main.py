@@ -11,6 +11,7 @@ from src.audit import AuditLogger
 from src.health import RuntimeLock, build_startup_banner, emit_heartbeat
 from src.logging_utils import configure_logging, get_logger
 from src.models import AuditEvent
+from src.provider_adapters.factory import resolve_provider_plan
 from src.settings import load_settings
 from src.state_store import StateStore
 
@@ -21,12 +22,17 @@ def _build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("health", help="Initialize logging and emit a heartbeat")
     subparsers.add_parser("init-db", help="Initialize the SQLite state store")
     subparsers.add_parser("llm-report", help="Print the latest advisory decisions")
+    subparsers.add_parser("provider-plan", help="Print the resolved backtest/paper/local provider plan")
     return parser
 
 
 def _print_llm_report(store: StateStore) -> None:
     report = store.latest_advisories(limit=10)
     print(json.dumps(report, indent=2, sort_keys=True))
+
+
+def _print_provider_plan(settings) -> None:
+    print(json.dumps(resolve_provider_plan(settings).as_dict(), indent=2, sort_keys=True))
 
 
 def main() -> int:
@@ -51,6 +57,11 @@ def main() -> int:
         store.close()
         return 0
 
+    if command == "provider-plan":
+        _print_provider_plan(settings)
+        store.close()
+        return 0
+
     def _handle_signal(signum, _frame) -> None:
         logger.warning("Shutdown signal received signum=%s", signum)
         store.close()
@@ -71,6 +82,7 @@ def main() -> int:
                     "command": command,
                     "state_db": str(settings.state_db_path),
                     "runtime_root": str(settings.runtime_root),
+                    "provider_plan": resolve_provider_plan(settings).as_dict(),
                     "ts": datetime.now(UTC).isoformat(),
                 },
             )

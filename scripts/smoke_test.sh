@@ -10,6 +10,7 @@ fi
 
 cd "$PROJECT_ROOT"
 "$PYTHON_BIN" -m src.main health
+"$PYTHON_BIN" -m src.main provider-plan
 "$PYTHON_BIN" -m pytest -q "$PROJECT_ROOT/tests/unit/test_scoring.py" "$PROJECT_ROOT/tests/unit/test_timing.py"
 
 printf 'Smoke test completed successfully\n'

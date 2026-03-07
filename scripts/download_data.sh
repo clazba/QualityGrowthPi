@@ -16,6 +16,11 @@ LEAN_DATA_DIRECTORY="${LEAN_DATA_DIRECTORY:-$RUNTIME_ROOT/data/lean}"
 BACKTEST_MODE="${BACKTEST_MODE:-cloud}"
 
 mkdir -p "$LEAN_DATA_DIRECTORY" "$RUNTIME_ROOT/data/news_cache" "$RUNTIME_ROOT/data/market_cache"
+mkdir -p \
+  "$RUNTIME_ROOT/data/market_cache/massive" \
+  "$RUNTIME_ROOT/data/market_cache/sec" \
+  "$RUNTIME_ROOT/data/market_cache/alpha_vantage" \
+  "$RUNTIME_ROOT/data/market_cache/alpaca"
 
 printf 'Prepared local data directories under %s\n' "$RUNTIME_ROOT/data"
 printf 'LEAN data directory: %s\n' "$LEAN_DATA_DIRECTORY"
@@ -39,3 +44,8 @@ else
 fi
 
 printf 'Place curated JSONL news feeds under: %s\n' "$RUNTIME_ROOT/data/news_cache"
+printf 'Populate local fallback caches under:\n'
+printf '  Massive: %s\n' "$RUNTIME_ROOT/data/market_cache/massive"
+printf '  SEC: %s\n' "$RUNTIME_ROOT/data/market_cache/sec"
+printf '  Alpha Vantage: %s\n' "$RUNTIME_ROOT/data/market_cache/alpha_vantage"
+printf '  Alpaca bars cache: %s\n' "$RUNTIME_ROOT/data/market_cache/alpaca"

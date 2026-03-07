@@ -71,6 +71,8 @@ def build_startup_banner(settings: Settings) -> str:
     return (
         f"QualityGrowthPi | env={settings.runtime.environment} "
         f"| provider={settings.runtime.provider_mode.value} "
+        f"| backtest={settings.backtest.mode.value} "
+        f"| paper_broker={settings.paper_trading.broker.value} "
         f"| llm_mode={settings.runtime.llm_mode.value} "
         f"| runtime_root={settings.runtime_root}"
     )

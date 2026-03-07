@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import os
+import json
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qsl, urlparse, urlunparse
 
@@ -28,6 +30,7 @@ class MassiveAdapter(MarketDataProvider):
         aggregates_path_template: str | None = None,
         ratios_path_template: str | None = None,
         income_statements_path_template: str | None = None,
+        fundamentals_cache_path: Path | None = None,
         timeout_seconds: int = 10,
     ) -> None:
         self.api_key = api_key or os.getenv("MASSIVE_API_KEY") or os.getenv("POLYGON_API_KEY") or ""
@@ -51,6 +54,12 @@ class MassiveAdapter(MarketDataProvider):
             income_statements_path_template
             or os.getenv("MASSIVE_INCOME_STATEMENTS_PATH_TEMPLATE")
             or self.DEFAULT_INCOME_STATEMENTS_PATH_TEMPLATE
+        )
+        self.fundamentals_cache_path = fundamentals_cache_path or Path(
+            os.getenv(
+                "MASSIVE_FUNDAMENTALS_CACHE_PATH",
+                str(Path.cwd() / "data" / "market_cache" / "massive" / "fundamentals_snapshot.jsonl"),
+            )
         )
         self.timeout_seconds = timeout_seconds
         self.session = requests.Session()
@@ -311,11 +320,23 @@ class MassiveAdapter(MarketDataProvider):
         }
 
     def fetch_fundamentals(self, as_of: datetime | None = None) -> list[FundamentalSnapshot]:
+        if self.fundamentals_cache_path.exists():
+            snapshots: list[FundamentalSnapshot] = []
+            with self.fundamentals_cache_path.open("r", encoding="utf-8") as handle:
+                for line in handle:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    snapshot = FundamentalSnapshot(**json.loads(line))
+                    if as_of and snapshot.as_of and snapshot.as_of > as_of:
+                        continue
+                    snapshots.append(snapshot)
+            return snapshots
         raise ProviderError(
-            "Massive's deprecated experimental financials endpoint is intentionally not used. "
-            "Use list_financial_ratios() and list_income_statements() against the current "
-            "/stocks/financials/v1 endpoints, then validate the remaining strategy-critical mappings "
-            "(especially PEG, gross-margin methodology, and point-in-time growth calculations) before "
+            f"Massive fundamentals cache not found: {self.fundamentals_cache_path}. "
+            "Populate a normalized snapshot cache using list_financial_ratios() and list_income_statements() "
+            "against the current /stocks/financials/v1 endpoints, then validate the remaining strategy-critical "
+            "mappings (especially PEG, gross-margin methodology, and point-in-time growth calculations) before "
             "enabling external_equivalent mode for production comparisons."
         )
 

@@ -1,6 +1,6 @@
 runtime:
   environment: dev
-  provider_mode: quantconnect_local
+  provider_mode: external_equivalent
   llm_enabled: true
   llm_mode: observe_only
   timezone: America/New_York
@@ -20,3 +20,23 @@ execution:
   require_live_confirmation: true
   stale_data_max_age_minutes: 30
   bootstrap_history_days: 35
+
+backtest:
+  mode: cloud
+  project_name: QualityGrowthPi
+  push_on_cloud: true
+  open_results: false
+
+paper_trading:
+  deployment_target: cloud
+  broker: alpaca
+  environment: paper
+  live_data_provider: QuantConnect
+  historical_data_provider: QuantConnect
+  push_to_cloud: true
+  open_results: false
+
+local_data_stack:
+  fundamentals_provider: massive_sec_alpha_vantage
+  daily_bars_provider: alpaca
+  news_provider: composite

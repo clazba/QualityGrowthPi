@@ -36,6 +36,26 @@ Risks:
 - code is executed remotely for cloud backtests, so this is not an offline workflow
 - local live or local backtest parity still requires separate validation if local execution is later enabled
 
+### Repository Default Local Fallback Stack
+
+The repository's first local fallback stack is:
+
+- `fundamentals`: Massive + SEC + Alpha Vantage
+- `daily bars`: Alpaca, with Massive and Alpha Vantage as fallbacks
+- `news`: composite provider using local file cache, Alpha Vantage, and Massive
+
+Strengths:
+
+- aligns with the lowest-cost staged deployment decision for this repository
+- keeps free/public SEC data in the loop for validation and cache building
+- uses Alpaca for the first paper-broker path and local daily-bar fallback
+
+Risks:
+
+- still drifts from QuantConnect/Morningstar point-in-time behavior
+- depends on local cache population for fundamentals snapshots
+- Alpha Vantage and Massive remain auxiliary for local live approximation, not parity-grade substitutes
+
 ### External Equivalent Mode
 
 Use this mode when local QuantConnect-compatible data is unavailable.

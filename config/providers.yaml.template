@@ -8,17 +8,35 @@ provider_modes:
       - "Requires local data entitlements and LEAN tooling."
   external_equivalent:
     enabled: true
-    description: "Fallback path using external APIs and local adapters."
-    market_data: massive
-    fundamentals: provider_specific_mapping_required
+    description: "Fallback path using the repository's first local stack: Massive + SEC + Alpaca + Alpha Vantage."
+    market_data:
+      daily_bars: alpaca
+      corporate_actions_fallback: massive
+    fundamentals:
+      primary: massive
+      validator: sec
+      enrichment: alpha_vantage
+    news: composite
     notes:
       - "Field-level drift must be measured against baseline artefacts."
+      - "This path is intended for local fallback workflows, not parity-grade backtests."
   paper_trading:
     enabled: true
-    execution_provider: ibkr
+    deployment_target: cloud
+    execution_provider: alpaca
+    live_data_provider: QuantConnect
+    historical_data_provider: QuantConnect
     notes:
-      - "Preferred first live stage."
+      - "Preferred first paper stage after cloud backtests."
+      - "Switch live/historical provider names only when moving to a fully local fallback runtime."
+  backtesting:
+    enabled: true
+    execution_mode: cloud
+    project_name: QualityGrowthPi
+    notes:
+      - "Cloud backtests are the default path for this repository."
+      - "Local data downloads are optional and only needed for local execution workflows."
   llm_advisory:
     enabled: true
     llm_provider: gemini
-    news_provider: file
+    news_provider: composite

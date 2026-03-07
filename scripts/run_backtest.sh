@@ -14,6 +14,7 @@ fi
 BACKTEST_MODE="${BACKTEST_MODE:-cloud}"
 LEAN_CLOUD_PUSH_ON_BACKTEST="${LEAN_CLOUD_PUSH_ON_BACKTEST:-true}"
 LEAN_CLOUD_OPEN_RESULTS="${LEAN_CLOUD_OPEN_RESULTS:-false}"
+LEAN_BACKTEST_PROJECT="${LEAN_BACKTEST_PROJECT:-QualityGrowthPi}"
 RESULTS_DIR="${QUANT_GPT_RUNTIME_ROOT:-$PROJECT_ROOT}/results/backtests"
 mkdir -p "$RESULTS_DIR"
 
@@ -24,7 +25,7 @@ fi
 
 "$PROJECT_ROOT/scripts/sync_lean_config.sh"
 
-read -r -p "Run LEAN backtest for QualityGrowthPi in ${BACKTEST_MODE} mode? [y/N]: " reply
+read -r -p "Run LEAN backtest for ${LEAN_BACKTEST_PROJECT} in ${BACKTEST_MODE} mode? [y/N]: " reply
 if [[ ! "$reply" =~ ^[Yy]$ ]]; then
   printf 'Backtest aborted by operator.\n'
   exit 0
@@ -34,14 +35,14 @@ cd "$PROJECT_ROOT/lean_workspace"
 
 case "$BACKTEST_MODE" in
   cloud)
-    args=("cloud" "backtest" "QualityGrowthPi")
+    args=("cloud" "backtest" "$LEAN_BACKTEST_PROJECT")
     if [[ "$LEAN_CLOUD_PUSH_ON_BACKTEST" == "true" ]]; then
       args+=("--push")
     fi
     if [[ "$LEAN_CLOUD_OPEN_RESULTS" == "true" ]]; then
       args+=("--open")
     fi
-    printf 'Running cloud backtest for QualityGrowthPi'
+    printf 'Running cloud backtest for %s' "$LEAN_BACKTEST_PROJECT"
     if [[ "$LEAN_CLOUD_PUSH_ON_BACKTEST" == "true" ]]; then
       printf ' with --push'
     fi
@@ -49,8 +50,8 @@ case "$BACKTEST_MODE" in
     lean "${args[@]}"
     ;;
   local)
-    printf 'Running local backtest. Results directory: %s\n' "$RESULTS_DIR"
-    lean backtest "QualityGrowthPi" --output "$RESULTS_DIR"
+    printf 'Running local backtest for %s. Results directory: %s\n' "$LEAN_BACKTEST_PROJECT" "$RESULTS_DIR"
+    lean backtest "$LEAN_BACKTEST_PROJECT" --output "$RESULTS_DIR"
     ;;
   *)
     printf 'Unsupported BACKTEST_MODE: %s\n' "$BACKTEST_MODE" >&2

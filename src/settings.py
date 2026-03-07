@@ -11,7 +11,16 @@ from typing import Any
 import yaml
 from dotenv import load_dotenv
 
-from src.models import ExecutionConfig, LLMSettingsModel, PathConfig, RuntimeConfig, StrategyParameters
+from src.models import (
+    BacktestConfig,
+    ExecutionConfig,
+    LLMSettingsModel,
+    LocalDataStackConfig,
+    PaperTradingConfig,
+    PathConfig,
+    RuntimeConfig,
+    StrategyParameters,
+)
 
 
 ENV_PATTERN = re.compile(r"\$\{([^}]+)\}")
@@ -69,6 +78,9 @@ class Settings:
     runtime: RuntimeConfig
     paths: PathConfig
     execution: ExecutionConfig
+    backtest: BacktestConfig
+    paper_trading: PaperTradingConfig
+    local_data_stack: LocalDataStackConfig
     strategy: StrategyParameters
     llm: LLMSettingsModel
     state_db_path: Path
@@ -106,6 +118,9 @@ def load_settings(project_root: Path | None = None) -> Settings:
     runtime = RuntimeConfig(**app_payload["runtime"])
     paths = PathConfig(**app_payload["paths"])
     execution = ExecutionConfig(**app_payload["execution"])
+    backtest = BacktestConfig(**app_payload["backtest"])
+    paper_trading = PaperTradingConfig(**app_payload["paper_trading"])
+    local_data_stack = LocalDataStackConfig(**app_payload["local_data_stack"])
     strategy = StrategyParameters(**strategy_payload["strategy"])
     llm = LLMSettingsModel(**llm_payload["llm"])
 
@@ -139,6 +154,47 @@ def load_settings(project_root: Path | None = None) -> Settings:
             ),
         }
     )
+    backtest = BacktestConfig(
+        **{
+            **backtest.model_dump(mode="python"),
+            "mode": os.getenv("BACKTEST_MODE", backtest.mode.value),
+            "project_name": os.getenv("LEAN_BACKTEST_PROJECT", backtest.project_name),
+            "push_on_cloud": _env_bool("LEAN_CLOUD_PUSH_ON_BACKTEST", backtest.push_on_cloud),
+            "open_results": _env_bool("LEAN_CLOUD_OPEN_RESULTS", backtest.open_results),
+        }
+    )
+    paper_trading = PaperTradingConfig(
+        **{
+            **paper_trading.model_dump(mode="python"),
+            "deployment_target": os.getenv(
+                "PAPER_DEPLOYMENT_TARGET",
+                paper_trading.deployment_target.value,
+            ),
+            "broker": os.getenv("PAPER_BROKER", paper_trading.broker.value),
+            "environment": os.getenv("PAPER_ENVIRONMENT", paper_trading.environment),
+            "live_data_provider": os.getenv("PAPER_LIVE_DATA_PROVIDER", paper_trading.live_data_provider),
+            "historical_data_provider": os.getenv(
+                "PAPER_HISTORICAL_DATA_PROVIDER",
+                paper_trading.historical_data_provider,
+            ),
+            "push_to_cloud": _env_bool("LEAN_CLOUD_PUSH_ON_PAPER", paper_trading.push_to_cloud),
+            "open_results": _env_bool("LEAN_CLOUD_OPEN_PAPER", paper_trading.open_results),
+        }
+    )
+    local_data_stack = LocalDataStackConfig(
+        **{
+            **local_data_stack.model_dump(mode="python"),
+            "fundamentals_provider": os.getenv(
+                "LOCAL_FUNDAMENTALS_PROVIDER",
+                local_data_stack.fundamentals_provider,
+            ),
+            "daily_bars_provider": os.getenv(
+                "LOCAL_DAILY_BARS_PROVIDER",
+                local_data_stack.daily_bars_provider,
+            ),
+            "news_provider": os.getenv("NEWS_PROVIDER_MODE", local_data_stack.news_provider.value),
+        }
+    )
 
     runtime_root = Path(os.getenv("QUANT_GPT_RUNTIME_ROOT", str(root))).expanduser().resolve()
     log_level = os.getenv("QUANT_GPT_LOG_LEVEL", "DEBUG")
@@ -163,6 +219,9 @@ def load_settings(project_root: Path | None = None) -> Settings:
         runtime=runtime,
         paths=paths,
         execution=execution,
+        backtest=backtest,
+        paper_trading=paper_trading,
+        local_data_stack=local_data_stack,
         strategy=strategy,
         llm=llm,
         state_db_path=state_db_path,

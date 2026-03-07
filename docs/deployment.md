@@ -53,12 +53,21 @@ Configuration:
 
 Purpose:
 
-- exercise the runtime under real scheduling and provider credentials without live capital
-- validate restart safety, state persistence, and operator procedures
+- validate the strategy after cloud backtests using `Alpaca paper` as the first brokered stage
+- keep the initial paper workflow simple while preserving a path to later local fallback data integration
 
-Primary command:
+Execution path:
 
-- `make live-paper`
+- default path: `lean cloud live deploy` with `Alpaca` brokerage and `QuantConnect` live/historical data providers
+- local fallback path: `lean live deploy` with overridden local providers once the external-equivalent stack has been validated
+
+Configuration:
+
+- `PAPER_DEPLOYMENT_TARGET=cloud` is the repository default
+- `PAPER_BROKER=alpaca`
+- `PAPER_LIVE_DATA_PROVIDER=QuantConnect`
+- `PAPER_HISTORICAL_DATA_PROVIDER=QuantConnect`
+- for fully local fallback paper/live, override the data providers and supply the local stack caches under `data/market_cache/`
 
 ### 4. Live Provider Mode
 

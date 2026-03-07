@@ -4,7 +4,9 @@
 
 Initial deployment should run in:
 
-- provider mode: `paper`
+- provider mode: `external_equivalent`
+- paper broker: `alpaca`
+- default paper deployment target: `cloud`
 - LLM mode: `observe_only`
 - logging level: `DEBUG`
 
@@ -16,7 +18,7 @@ This preserves auditability while preventing the advisory subsystem from affecti
 2. Confirm `.env` exists with correct file permissions
 3. Confirm the SQLite database is reachable
 4. Check that the runtime lock is not already held
-5. Start backtest or paper trading mode
+5. Start cloud backtest or Alpaca paper mode
 6. Inspect `logs/app.log`, `logs/audit.jsonl`, and `logs/llm.log`
 
 ## Rebalance Safety
@@ -66,4 +68,4 @@ Critical audit artefacts:
 3. Review last rebalance record in SQLite
 4. Confirm data freshness and provider health
 5. Re-run smoke tests if the failure involved configuration drift
-6. Restart in paper mode first if the incident touched execution or provider credentials
+6. Restart in Alpaca paper mode first if the incident touched execution or provider credentials

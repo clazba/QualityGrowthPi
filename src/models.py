@@ -27,6 +27,37 @@ class LLMMode(str, Enum):
     RISK_MODIFIER = "risk_modifier"
 
 
+class BacktestMode(str, Enum):
+    """Supported backtest execution modes."""
+
+    CLOUD = "cloud"
+    LOCAL = "local"
+
+
+class DeploymentTarget(str, Enum):
+    """Where LEAN live/paper deployments execute."""
+
+    CLOUD = "cloud"
+    LOCAL = "local"
+
+
+class ExecutionBroker(str, Enum):
+    """Supported execution brokers for staged deployment."""
+
+    ALPACA = "alpaca"
+    IBKR = "ibkr"
+    QUANTCONNECT_PAPER = "quantconnect_paper"
+
+
+class NewsProviderMode(str, Enum):
+    """Supported news ingestion modes."""
+
+    FILE = "file"
+    MASSIVE = "massive"
+    ALPHA_VANTAGE = "alpha_vantage"
+    COMPOSITE = "composite"
+
+
 class SentimentLabel(str, Enum):
     """Normalized sentiment labels."""
 
@@ -201,6 +232,59 @@ class ExecutionConfig(BaseConfigModel):
     require_live_confirmation: bool = True
     stale_data_max_age_minutes: int = 30
     bootstrap_history_days: int = 35
+
+
+class BacktestConfig(BaseConfigModel):
+    """Backtest deployment configuration."""
+
+    mode: BacktestMode = BacktestMode.CLOUD
+    project_name: str = "QualityGrowthPi"
+    push_on_cloud: bool = True
+    open_results: bool = False
+
+
+class PaperTradingConfig(BaseConfigModel):
+    """Paper-trading deployment configuration."""
+
+    deployment_target: DeploymentTarget = DeploymentTarget.CLOUD
+    broker: ExecutionBroker = ExecutionBroker.ALPACA
+    environment: str = "paper"
+    live_data_provider: str = "QuantConnect"
+    historical_data_provider: str = "QuantConnect"
+    push_to_cloud: bool = True
+    open_results: bool = False
+
+    @field_validator("environment")
+    @classmethod
+    def validate_environment(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if normalized not in {"paper", "live"}:
+            raise ValueError("paper trading environment must be 'paper' or 'live'")
+        return normalized
+
+    @field_validator("live_data_provider", "historical_data_provider")
+    @classmethod
+    def non_empty_provider(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("provider name must not be empty")
+        return normalized
+
+
+class LocalDataStackConfig(BaseConfigModel):
+    """Preferred local provider stack for the external-equivalent path."""
+
+    fundamentals_provider: str = "massive_sec_alpha_vantage"
+    daily_bars_provider: str = "alpaca"
+    news_provider: NewsProviderMode = NewsProviderMode.COMPOSITE
+
+    @field_validator("fundamentals_provider", "daily_bars_provider")
+    @classmethod
+    def normalize_stack_value(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if not normalized:
+            raise ValueError("stack provider value must not be empty")
+        return normalized
 
 
 class LLMPolicyConfig(BaseConfigModel):

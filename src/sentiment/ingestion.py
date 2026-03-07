@@ -2,22 +2,15 @@
 
 from __future__ import annotations
 
-import os
 from datetime import datetime
-from pathlib import Path
 
 from src.models import NewsEvent
-from src.provider_adapters.news_base import FileNewsProvider
+from src.provider_adapters.factory import build_news_provider
+from src.settings import load_settings
 
 
 def load_curated_news(symbols: list[str], since: datetime | None = None) -> list[NewsEvent]:
-    """Load news events for a set of symbols using the configured file feed."""
+    """Load news events for a set of symbols using the configured provider stack."""
 
-    feed_path = Path(
-        os.getenv(
-            "NEWS_FEED_PATH",
-            str(Path.cwd() / "data" / "news_cache" / "news_feed.jsonl"),
-        )
-    )
-    provider = FileNewsProvider(feed_path)
+    provider = build_news_provider(load_settings())
     return provider.fetch_news(symbols=symbols, since=since)

@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 PROJECT_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
-.PHONY: setup env verify test smoke backtest live-paper clean llm-smoke llm-report lint
+.PHONY: setup env verify test smoke backtest live-paper e2e clean llm-smoke llm-report lint
 
 setup:
 	./scripts/bootstrap_pi.sh
@@ -23,6 +23,9 @@ backtest:
 
 live-paper:
 	./scripts/run_live_paper.sh
+
+e2e:
+	./scripts/run_e2e.sh
 
 clean:
 	rm -rf .pytest_cache .mypy_cache
