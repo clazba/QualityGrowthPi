@@ -1,0 +1,41 @@
+strategy:
+  algorithm_name: QualityGrowthPi
+  benchmark_symbol: SPY
+  rebalance:
+    frequency: monthly
+    anchor_symbol: SPY
+    after_open_minutes: 30
+    max_holdings: 20
+    candidate_pool_multiplier: 3
+  universe:
+    exchange_id: NYS
+    min_market_cap: 1000000000
+    min_price: 5.0
+    require_fundamental_data: true
+  thresholds:
+    roe_min: 0.15
+    gross_margin_min: 0.30
+    debt_to_equity_min: 0.0
+    debt_to_equity_max: 2.0
+    revenue_growth_min: 0.10
+    net_income_growth_min: 0.10
+    pe_ratio_min: 0.0
+    peg_ratio_min: 0.0
+    peg_ratio_max: 2.0
+  weights:
+    roe: 0.3
+    revenue_growth: 0.3
+    net_income_growth: 0.2
+    inverse_peg: 0.2
+    fundamental_component: 0.6
+    timing_component: 0.4
+    timing_relative_volume: 0.3
+    timing_volatility_contraction: 0.4
+    timing_trend: 0.3
+  timing:
+    volume_window: 20
+    price_window: 20
+    short_sma: 10
+    long_sma: 30
+    relative_volume_threshold: 1.2
+    volatility_contraction_threshold: 0.85

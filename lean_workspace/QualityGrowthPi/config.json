@@ -1,0 +1,11 @@
+{
+  "algorithm-name": "QualityGrowthPi",
+  "project-root": "/mnt/nvme_data/shared/quant_gpt",
+  "shared-module-root": "/mnt/nvme_data/shared/quant_gpt/src",
+  "strategy-config": "/mnt/nvme_data/shared/quant_gpt/config/strategy.yaml",
+  "app-config": "/mnt/nvme_data/shared/quant_gpt/config/app.yaml",
+  "notes": [
+    "Set the project-root paths to the Pi NVMe mount before live deployment.",
+    "Shared pure Python modules remain under src/ and are imported by the LEAN algorithm."
+  ]
+}

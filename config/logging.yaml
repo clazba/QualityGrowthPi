@@ -1,0 +1,56 @@
+version: 1
+disable_existing_loggers: false
+formatters:
+  standard:
+    format: "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+  jsonline:
+    format: "%(message)s"
+handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: standard
+    level: DEBUG
+  app_file:
+    class: logging.handlers.RotatingFileHandler
+    formatter: standard
+    filename: logs/app.log
+    maxBytes: 2097152
+    backupCount: 5
+    level: DEBUG
+  audit_file:
+    class: logging.handlers.RotatingFileHandler
+    formatter: jsonline
+    filename: logs/audit.jsonl
+    maxBytes: 2097152
+    backupCount: 10
+    level: INFO
+  llm_file:
+    class: logging.handlers.RotatingFileHandler
+    formatter: standard
+    filename: logs/llm.log
+    maxBytes: 2097152
+    backupCount: 5
+    level: DEBUG
+  test_file:
+    class: logging.handlers.RotatingFileHandler
+    formatter: standard
+    filename: logs/tests.log
+    maxBytes: 1048576
+    backupCount: 3
+    level: DEBUG
+loggers:
+  quant_gpt:
+    handlers: [console, app_file]
+    level: DEBUG
+    propagate: false
+  quant_gpt.audit:
+    handlers: [audit_file]
+    level: INFO
+    propagate: false
+  quant_gpt.llm:
+    handlers: [console, llm_file]
+    level: DEBUG
+    propagate: false
+root:
+  handlers: [console, app_file]
+  level: INFO

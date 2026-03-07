@@ -1,0 +1,15 @@
+{
+  "symbol": "AAA",
+  "sentiment_score": -0.2,
+  "sentiment_label": "bearish",
+  "confidence_score": 0.8,
+  "key_catalysts": ["guidance_cut"],
+  "key_risks": ["earnings_revision"],
+  "narrative_tags": ["earnings", "growth_slowdown"],
+  "event_urgency": "high",
+  "suggested_action": "reduce_size",
+  "rationale_short": "Guidance cut introduces near-term uncertainty despite strong fundamentals.",
+  "source_coverage_score": 0.85,
+  "model_name": "fixture-model",
+  "prompt_version": "advisory_v1"
+}

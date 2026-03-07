@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# Environment and secrets
+.env
+.env.local
+
+# Logs, state, results, caches
+logs/*
+!logs/README.md
+state/*
+!state/README.md
+data/news_cache/*
+!data/news_cache/.gitkeep
+data/market_cache/*
+!data/market_cache/.gitkeep
+data/llm_cache/*
+!data/llm_cache/.gitkeep
+results/*
+!results/README.md
+
+# LEAN outputs
+lean_workspace/Launcher/
+lean_workspace/**/backtests/
+lean_workspace/**/live/
+
+# Editor
+.DS_Store
+._*
+.idea/
+.vscode/

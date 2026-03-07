@@ -1,0 +1,23 @@
+llm:
+  enabled: true
+  provider: gemini
+  default_model: ${GEMINI_MODEL_ID}
+  fallback_model: ${GEMINI_FALLBACK_MODEL_ID}
+  timeout_seconds: 12
+  max_retries: 2
+  cache_ttl_minutes: 240
+  max_symbols_per_batch: 20
+  budget_usd_daily: 5.0
+  estimated_request_cost_usd: 0.001
+  mode: observe_only
+  retention_days: 30
+  prompts:
+    sentiment: sentiment_system.txt
+    narrative: narrative_system.txt
+    advisory: advisory_system.txt
+    schema: extraction_schema.json
+  policy:
+    low_confidence_threshold: 0.55
+    low_coverage_threshold: 0.4
+    max_weight_reduction: 0.5
+    require_manual_review_on_reduce_size: true

@@ -1,0 +1,1 @@
+"""QualityGrowthPi shared Python package."""

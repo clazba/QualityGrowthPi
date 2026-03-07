@@ -1,0 +1,72 @@
+[
+  {
+    "symbol": "AAA",
+    "market_cap": 5000000000,
+    "exchange_id": "NYS",
+    "price": 50.0,
+    "volume": 250000,
+    "roe": 0.32,
+    "gross_margin": 0.58,
+    "debt_to_equity": 0.35,
+    "revenue_growth": 0.28,
+    "net_income_growth": 0.24,
+    "pe_ratio": 22.0,
+    "peg_ratio": 0.9
+  },
+  {
+    "symbol": "BBB",
+    "market_cap": 4200000000,
+    "exchange_id": "NYS",
+    "price": 42.0,
+    "volume": 230000,
+    "roe": 0.29,
+    "gross_margin": 0.54,
+    "debt_to_equity": 0.40,
+    "revenue_growth": 0.25,
+    "net_income_growth": 0.20,
+    "pe_ratio": 21.0,
+    "peg_ratio": 1.0
+  },
+  {
+    "symbol": "CCC",
+    "market_cap": 4000000000,
+    "exchange_id": "NYS",
+    "price": 38.0,
+    "volume": 210000,
+    "roe": 0.26,
+    "gross_margin": 0.49,
+    "debt_to_equity": 0.45,
+    "revenue_growth": 0.22,
+    "net_income_growth": 0.18,
+    "pe_ratio": 19.0,
+    "peg_ratio": 1.1
+  },
+  {
+    "symbol": "DDD",
+    "market_cap": 3600000000,
+    "exchange_id": "NYS",
+    "price": 34.0,
+    "volume": 190000,
+    "roe": 0.24,
+    "gross_margin": 0.46,
+    "debt_to_equity": 0.50,
+    "revenue_growth": 0.20,
+    "net_income_growth": 0.16,
+    "pe_ratio": 18.0,
+    "peg_ratio": 1.2
+  },
+  {
+    "symbol": "EEE",
+    "market_cap": 3100000000,
+    "exchange_id": "NYS",
+    "price": 30.0,
+    "volume": 170000,
+    "roe": 0.22,
+    "gross_margin": 0.42,
+    "debt_to_equity": 0.55,
+    "revenue_growth": 0.18,
+    "net_income_growth": 0.14,
+    "pe_ratio": 17.0,
+    "peg_ratio": 1.3
+  }
+]

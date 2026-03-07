@@ -1,0 +1,23 @@
+{
+  "data-folder": "/mnt/nvme_data/shared/quant_gpt/data/lean",
+  "algorithm-language": "Python",
+  "python-venv": "/mnt/nvme_data/shared/quant_gpt/.venv",
+  "job-organization-id": "",
+  "environments": {
+    "backtesting": {
+      "python-additional-paths": [
+        "/mnt/nvme_data/shared/quant_gpt"
+      ]
+    },
+    "live-paper": {
+      "python-additional-paths": [
+        "/mnt/nvme_data/shared/quant_gpt"
+      ]
+    }
+  },
+  "lean-engine-settings": {
+    "algorithm-manager-time-loop-maximum": 20,
+    "transaction-log": "",
+    "results-destination-folder": "/mnt/nvme_data/shared/quant_gpt/results"
+  }
+}

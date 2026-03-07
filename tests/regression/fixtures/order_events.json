@@ -1,0 +1,14 @@
+[
+  {
+    "symbol": "AAA",
+    "status": "Filled",
+    "fill_price": 50.25,
+    "fill_quantity": 100
+  },
+  {
+    "symbol": "BBB",
+    "status": "Filled",
+    "fill_price": 42.10,
+    "fill_quantity": 120
+  }
+]

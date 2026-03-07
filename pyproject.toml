@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=69.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qualitygrowthpi"
+version = "0.1.0"
+description = "Self-hosted LEAN-compatible quant trading stack with optional auditable LLM advisory support."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "pydantic==2.11.1",
+  "PyYAML==6.0.2",
+  "python-dotenv==1.0.1",
+  "requests==2.32.3",
+  "jsonschema==4.23.0",
+  "numpy==1.26.4",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest==8.3.5",
+]
+
+[project.scripts]
+quant-gpt = "src.main:main"
+
+[tool.setuptools.packages.find]
+include = ["src*"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra"
+norecursedirs = [".*", "__pycache__"]
+testpaths = [
+  "tests",
+  "lean_workspace/QualityGrowthPi/tests",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

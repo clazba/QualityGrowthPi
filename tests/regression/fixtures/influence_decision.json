@@ -1,0 +1,9 @@
+{
+  "symbol": "AAA",
+  "base_weight": 0.3333333333333333,
+  "adjusted_weight": 0.2,
+  "action_taken": "reduce_size",
+  "manual_review_required": true,
+  "applied": true,
+  "reason": "Applied bounded reduce_size policy"
+}

@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LLMAdvisoryPayload",
+  "type": "object",
+  "required": [
+    "symbol",
+    "sentiment_score",
+    "sentiment_label",
+    "confidence_score",
+    "key_catalysts",
+    "key_risks",
+    "narrative_tags",
+    "event_urgency",
+    "suggested_action",
+    "rationale_short",
+    "source_coverage_score",
+    "model_name",
+    "prompt_version"
+  ],
+  "properties": {
+    "symbol": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sentiment_score": {
+      "type": "number",
+      "minimum": -1.0,
+      "maximum": 1.0
+    },
+    "sentiment_label": {
+      "type": "string",
+      "enum": ["bullish", "neutral", "bearish", "unknown"]
+    },
+    "confidence_score": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "key_catalysts": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "key_risks": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "narrative_tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "event_urgency": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "unknown"]
+    },
+    "suggested_action": {
+      "type": "string",
+      "enum": ["no_effect", "caution", "manual_review", "reduce_size"]
+    },
+    "rationale_short": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 400
+    },
+    "source_coverage_score": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "model_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "prompt_version": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": false
+}

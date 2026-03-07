@@ -1,0 +1,22 @@
+{
+  "AAA": {
+    "symbol": "AAA",
+    "timing_score": 0.7
+  },
+  "BBB": {
+    "symbol": "BBB",
+    "timing_score": 0.4
+  },
+  "CCC": {
+    "symbol": "CCC",
+    "timing_score": 0.3
+  },
+  "DDD": {
+    "symbol": "DDD",
+    "timing_score": 0.2
+  },
+  "EEE": {
+    "symbol": "EEE",
+    "timing_score": 0.1
+  }
+}

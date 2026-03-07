@@ -1,0 +1,9 @@
+{
+  "symbol": "AAA",
+  "sentiment_score": 0.2,
+  "sentiment_label": "neutral",
+  "confidence_score": 0.75,
+  "source_coverage_score": 0.7,
+  "key_catalysts": ["earnings_call"],
+  "key_risks": ["valuation"]
+}

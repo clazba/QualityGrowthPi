@@ -1,0 +1,22 @@
+runtime:
+  environment: dev
+  provider_mode: quantconnect_local
+  llm_enabled: true
+  llm_mode: observe_only
+  timezone: America/New_York
+  state_db: state/quant_gpt.db
+  runtime_lock: state/runtime.lock
+  heartbeat_seconds: 60
+
+paths:
+  logs_dir: logs
+  state_dir: state
+  results_dir: results
+  data_dir: data
+  prompts_dir: config/prompts
+
+execution:
+  paper_default: true
+  require_live_confirmation: true
+  stale_data_max_age_minutes: 30
+  bootstrap_history_days: 35

@@ -1,0 +1,24 @@
+provider_modes:
+  quantconnect_local:
+    enabled: true
+    description: "Use LEAN-compatible local data and CLI-backed workflows when licensed datasets are available."
+    data_directory_env: LEAN_DATA_DIRECTORY
+    notes:
+      - "Highest fidelity path for strategy preservation."
+      - "Requires local data entitlements and LEAN tooling."
+  external_equivalent:
+    enabled: true
+    description: "Fallback path using external APIs and local adapters."
+    market_data: polygon
+    fundamentals: provider_specific_mapping_required
+    notes:
+      - "Field-level drift must be measured against baseline artefacts."
+  paper_trading:
+    enabled: true
+    execution_provider: ibkr
+    notes:
+      - "Preferred first live stage."
+  llm_advisory:
+    enabled: true
+    llm_provider: gemini
+    news_provider: file

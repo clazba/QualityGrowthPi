@@ -1,0 +1,10 @@
+{
+  "description": "Baseline artefact slots for future QuantConnect comparison bundles.",
+  "expected_artifacts": [
+    "universe_snapshots",
+    "score_tables",
+    "target_weights",
+    "order_events",
+    "holdings_snapshots"
+  ]
+}
