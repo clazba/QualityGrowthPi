@@ -353,6 +353,7 @@ run_step "full_test_suite" "$PROJECT_ROOT/scripts/run_tests.sh"
 
 if lean_preflight_available; then
   run_step "lean_workspace_sync" "$PROJECT_ROOT/scripts/sync_lean_config.sh"
+  run_step "lean_project_sync" "$PROJECT_ROOT/scripts/sync_lean_project.sh"
   run_python_step "lean_workspace_validation" <<PY
 import json
 from pathlib import Path
@@ -372,6 +373,7 @@ PY
   run_step "backtest_preflight_abort" bash -lc "printf 'n\n' | '$PROJECT_ROOT/scripts/run_backtest.sh'"
 else
   mark_skip "lean_workspace_sync" "LEAN CLI or LEAN_ORGANIZATION_ID not configured"
+  mark_skip "lean_project_sync" "LEAN CLI or LEAN_ORGANIZATION_ID not configured"
   mark_skip "lean_workspace_validation" "LEAN CLI or LEAN_ORGANIZATION_ID not configured"
   mark_skip "backtest_preflight_abort" "LEAN CLI or LEAN_ORGANIZATION_ID not configured"
 fi

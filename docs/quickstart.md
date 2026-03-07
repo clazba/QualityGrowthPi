@@ -154,6 +154,23 @@ Optional execution mode:
 
 Those execution flags are intentionally explicit and still prompt for operator confirmation.
 
+### Capture A Cloud Regression Baseline
+
+After a successful cloud backtest, save the structured artefacts into the LEAN workspace regression bundle:
+
+```bash
+./scripts/read_backtest_diagnostics.sh <backtest_id>
+make baseline BACKTEST_ID=<backtest_id>
+```
+
+This writes a baseline bundle under:
+
+- `lean_workspace/QualityGrowthPi/tests/regression/cloud_baselines/<backtest_id>/`
+
+And updates:
+
+- `lean_workspace/QualityGrowthPi/tests/regression/baseline_manifest.json`
+
 ## How To Inspect The App
 
 The local control-plane entrypoint is [src/main.py](/Volumes/PiShare/quant_gpt/src/main.py).
@@ -310,9 +327,28 @@ python -m src.main provider-plan
 
 ### Start the first Alpaca paper deployment
 
+Before the first deployment, validate Alpaca and select a QuantConnect live node:
+
+```bash
+cd /mnt/nvme_data/shared/quant_gpt
+./scripts/check_alpaca_paper.sh
+./scripts/list_qc_nodes.sh
+```
+
+Set `LEAN_CLOUD_PAPER_NODE` in `.env` to the chosen node id or node name, then deploy:
+
 ```bash
 cd /mnt/nvme_data/shared/quant_gpt
 make live-paper
+```
+
+Monitor or stop the deployment from the same repo:
+
+```bash
+cd /mnt/nvme_data/shared/quant_gpt
+make paper-status
+make paper-stop
+# or: make paper-liquidate
 ```
 
 ## Safe Defaults

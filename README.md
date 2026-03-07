@@ -40,7 +40,7 @@ For an operator-focused setup and usage guide, see [docs/quickstart.md](/Volumes
 ## Execution Paths
 
 - Backtest: `make backtest` (`QuantConnect cloud` is the default path)
-- Paper trading: `make live-paper` (`Alpaca paper` is the default first stage)
+- Paper trading: `make paper-check`, `make live-paper`, `make paper-status`, `make paper-stop` (`Alpaca paper` is the default first stage)
 - Live provider path: `scripts/run_live_provider.sh`
 
 ## Current Limits

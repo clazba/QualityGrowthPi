@@ -1,0 +1,21 @@
+{
+  "CandidateCount": "18",
+  "CurrentFundamentals": "17",
+  "DiagExchange": "560",
+  "DiagPEG": "519",
+  "DiagROE": "441",
+  "Equity": "$191,701.99",
+  "Fees": "-$1,629.16",
+  "FineCount": "1000",
+  "Holdings": "$147,405.47",
+  "Net Profit": "$84,878.93",
+  "Probabilistic Sharpe Ratio": "2.603%",
+  "RankedCount": "17",
+  "RebalanceState": "already_completed",
+  "Return": "91.70 %",
+  "ShortlistedCount": "17",
+  "TargetCount": "18",
+  "TimingFeatures": "18",
+  "Unrealized": "$6,808.26",
+  "Volume": "$7,238,806.17"
+}

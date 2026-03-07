@@ -56,13 +56,16 @@ def stale_data_detected(
     last_updated: datetime | None,
     max_age_minutes: int,
     now: datetime | None = None,
+    max_age_days: int = 4,
 ) -> bool:
     """Return True when data is missing or older than the allowed freshness window."""
 
     if last_updated is None:
         return True
     reference = now or datetime.now(UTC)
-    return last_updated < reference - timedelta(minutes=max_age_minutes)
+    if last_updated >= reference - timedelta(minutes=max_age_minutes):
+        return False
+    return last_updated.date() < (reference.date() - timedelta(days=max_age_days))
 
 
 def build_startup_banner(settings: Settings) -> str:

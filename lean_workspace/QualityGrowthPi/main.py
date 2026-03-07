@@ -1,50 +1,76 @@
-"""LEAN algorithm entrypoint for the shared quality-growth strategy."""
+"""Cloud-safe LEAN algorithm entrypoint for QualityGrowthPi."""
 
 from __future__ import annotations
 
-import os
+import json
 import sys
-from datetime import UTC, datetime
+from collections import deque
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Deque, Dict, List, Optional
+
+PROJECT_DIR = Path(__file__).resolve().parent
+UTC = timezone.utc
+if str(PROJECT_DIR) not in sys.path:
+    sys.path.insert(0, str(PROJECT_DIR))
 
 import numpy as np
-
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
 
 try:
     from AlgorithmImports import *  # type: ignore  # noqa: F401,F403
 except ImportError:  # pragma: no cover - local syntax support only
+    pass
+
+if "QCAlgorithm" not in globals():  # pragma: no cover - local syntax support only
     class QCAlgorithm:  # noqa: D401
         """Minimal local stub for syntax validation outside LEAN."""
 
         pass
 
+if "Resolution" not in globals():  # pragma: no cover - local syntax support only
     class Resolution:
         Daily = "Daily"
 
-    class PortfolioTarget:
-        def __init__(self, symbol: str, quantity: float) -> None:
-            self.Symbol = symbol
-            self.Quantity = quantity
 
-    class SecurityChanges:
-        AddedSecurities: list[Any] = []
-
-
-from src.audit import AuditLogger
-from src.health import stale_data_detected
-from src.logging_utils import configure_logging, get_logger
-from src.models import AuditEvent, DeterministicDecisionContext, FundamentalSnapshot, LLMMode
-from src.scoring import build_rebalance_intent, hash_rebalance_intent, rank_fundamental_candidates
-from src.settings import load_settings
-from src.state_store import StateStore
-from src.timing import build_timing_features
+from scoring import (
+    FundamentalSnapshot,
+    RebalanceIntent,
+    TimingFeatures,
+    build_rebalance_intent,
+    build_timing_features,
+    hash_rebalance_intent,
+    load_strategy_config,
+    rank_fundamental_candidates,
+    stale_data_detected,
+)
 
 
-def _safe_number(value: Any, default: float | None = None) -> float | None:
+DAILY_RESOLUTION = getattr(Resolution, "Daily", getattr(Resolution, "DAILY", "Daily"))
+
+
+class SymbolState:
+    """Rolling daily-bar state for timing overlays."""
+
+    def __init__(self, maxlen: int) -> None:
+        self.closes = deque(maxlen=maxlen)  # type: Deque[float]
+        self.volumes = deque(maxlen=maxlen)  # type: Deque[float]
+        self.last_updated = None  # type: Optional[datetime]
+
+    def extend(self, closes: List[float], volumes: List[float], last_updated: Optional[datetime] = None) -> None:
+        for close in closes:
+            self.closes.append(float(close))
+        for volume in volumes:
+            self.volumes.append(float(volume))
+        if last_updated is not None:
+            self.last_updated = last_updated
+
+    def add_bar(self, close: float, volume: float, last_updated: datetime) -> None:
+        self.closes.append(float(close))
+        self.volumes.append(float(volume))
+        self.last_updated = last_updated
+
+
+def _safe_number(value: Any, default: Optional[float] = None) -> Optional[float]:
     try:
         if value is None:
             return default
@@ -63,192 +89,521 @@ def _nested_attr(obj: Any, path: str, default: Any = None) -> Any:
 
 
 class QualityGrowthPiAlgorithm(QCAlgorithm):
-    """LEAN wrapper around shared deterministic strategy modules."""
+    """LEAN wrapper around cloud-safe deterministic strategy helpers."""
 
-    def Initialize(self) -> None:  # noqa: N802 - LEAN naming
-        self.settings = load_settings(PROJECT_ROOT)
-        configure_logging(self.settings)
-        self.logger = get_logger("quant_gpt")
-        self.state_store = StateStore(self.settings.state_db_path)
-        self.state_store.initialize()
-        self.audit = AuditLogger(store=self.state_store)
+    REBALANCE_STATE_KEY = "QualityGrowthPi:last_rebalance_key"
 
-        self.strategy = self.settings.strategy
-        self.current_fundamentals: dict[str, FundamentalSnapshot] = {}
-        self.timing_state = {}
-        self.last_rebalance_key: str | None = None
+    def Initialize(self) -> None:  # noqa: N802
+        self.config = load_strategy_config(PROJECT_DIR / "config.py")
+        self.strategy = self.config["strategy"]
+        self.runtime = self.config.get("runtime", {})
+        self.audit_enabled = bool(self.runtime.get("cloud_audit_logging", True))
+
+        self.current_fundamentals = {}  # type: Dict[str, FundamentalSnapshot]
+        self.symbol_registry = {}  # type: Dict[str, Any]
+        self.symbol_state = {}  # type: Dict[str, SymbolState]
+        self.timing_features = {}  # type: Dict[str, TimingFeatures]
+        self.last_rebalance_key = None  # type: Optional[str]
 
         if hasattr(self, "SetStartDate"):
             self.SetStartDate(2018, 1, 1)
         if hasattr(self, "SetCash"):
             self.SetCash(100000)
 
-        self.anchor_symbol = "SPY"
+        if hasattr(self, "UniverseSettings"):
+            self.UniverseSettings.Resolution = DAILY_RESOLUTION
+
+        self.anchor_symbol = self.strategy["rebalance"]["anchor_symbol"]
         if hasattr(self, "AddEquity"):
-            self.anchor_symbol = self.AddEquity("SPY", Resolution.Daily).Symbol
+            self.anchor_symbol = self.AddEquity(self.strategy["rebalance"]["anchor_symbol"], DAILY_RESOLUTION).Symbol
+        if hasattr(self, "SetBenchmark"):
+            self.SetBenchmark(self.anchor_symbol)
 
         if hasattr(self, "AddUniverse"):
-            self.AddUniverse(self.CoarseSelectionFunction, self.FineSelectionFunction)
+            self.AddUniverse(self.FundamentalSelectionFunction)
 
         if hasattr(self, "Schedule") and hasattr(self, "DateRules") and hasattr(self, "TimeRules"):
             self.Schedule.On(
-                self.DateRules.MonthStart(self.anchor_symbol),
-                self.TimeRules.AfterMarketOpen(self.anchor_symbol, self.strategy.rebalance.after_open_minutes),
+                self.DateRules.EveryDay(self.anchor_symbol),
+                self.TimeRules.AfterMarketOpen(self.anchor_symbol, int(self.strategy["rebalance"]["after_open_minutes"])),
                 self.Rebalance,
             )
 
-        self.audit.emit(
-            AuditEvent(
-                event_type="lean_initialize",
-                payload={
-                    "anchor_symbol": str(self.anchor_symbol),
-                    "llm_mode": self.settings.runtime.llm_mode.value,
-                    "provider_mode": self.settings.runtime.provider_mode.value,
-                },
-            )
+        self._emit_audit(
+            "initialize",
+            {
+                "algorithm": self.strategy["algorithm_name"],
+                "anchor_symbol": str(self.anchor_symbol),
+                "max_holdings": int(self.strategy["rebalance"]["max_holdings"]),
+                "llm_mode": "observe_only",
+            },
         )
+        self._set_runtime_statistic("LastRebalanceCheckState", "initialized")
+        self._set_runtime_statistic("LastUniverseCurrentFundamentals", "0")
+        self._set_runtime_statistic("LastTimingFeatureCount", "0")
+        self._set_runtime_statistic("LastRebalancePendingPriceCount", "0")
 
-    def CoarseSelectionFunction(self, coarse):  # noqa: N802 - LEAN naming
+    def CoarseSelectionFunction(self, coarse):  # noqa: N802
         """Initial coarse filter to reduce fine universe load."""
 
-        selected = []
-        for item in coarse:
+        return [item.Symbol for item in self._filter_fundamentals(coarse)]
+
+    def FundamentalSelectionFunction(self, fundamentals):  # noqa: N802
+        """Single-stage fundamental universe selection for current LEAN APIs."""
+
+        filtered = self._filter_fundamentals(fundamentals)
+        return self._rank_and_select(filtered)
+
+    def FineSelectionFunction(self, fine):  # noqa: N802
+        """Fine fundamental selection using the local pure ranking logic."""
+
+        return self._rank_and_select(fine)
+
+    def _filter_fundamentals(self, fundamentals) -> List[Any]:
+        """Apply the former coarse universe filter to fundamental rows."""
+
+        min_price = float(self.strategy["universe"]["min_price"])
+        filtered = []
+        for item in fundamentals:
             has_fundamentals = bool(getattr(item, "HasFundamentalData", False))
             price = _safe_number(getattr(item, "Price", None), 0.0) or 0.0
-            if not has_fundamentals or price <= self.strategy.universe.min_price:
+            dollar_volume = _safe_number(getattr(item, "DollarVolume", None), 0.0) or 0.0
+            volume = _safe_number(getattr(item, "Volume", None))
+            if (volume is None or volume <= 0) and price > 0 and dollar_volume > 0:
+                volume = dollar_volume / price
+            volume = volume or 0.0
+            if not has_fundamentals or price <= min_price or volume <= 0:
                 continue
-            selected.append(item.Symbol)
-        return selected[:500]
+            if dollar_volume <= 0:
+                dollar_volume = price * volume
+            filtered.append((item, dollar_volume))
+        filtered.sort(key=lambda row: row[1], reverse=True)
+        return [item for item, _ in filtered[:1000]]
 
-    def FineSelectionFunction(self, fine):  # noqa: N802 - LEAN naming
-        """Fine fundamental selection using the shared pure ranking logic."""
-
-        snapshots: list[FundamentalSnapshot] = []
-        for item in fine:
-            snapshot = FundamentalSnapshot(
-                symbol=str(item.Symbol),
-                as_of=datetime.now(UTC),
-                has_fundamental_data=True,
-                market_cap=_safe_number(getattr(item, "MarketCap", None), 0.0) or 0.0,
-                exchange_id=str(_nested_attr(item, "CompanyReference.PrimaryExchangeID", "")),
-                price=_safe_number(getattr(item, "Price", None), 0.0) or 0.0,
-                volume=_safe_number(getattr(item, "Volume", None), 0.0) or 0.0,
-                roe=_safe_number(_nested_attr(item, "OperationRatios.ROE.Value")),
-                gross_margin=_safe_number(_nested_attr(item, "OperationRatios.GrossMargin.Value")),
-                debt_to_equity=_safe_number(_nested_attr(item, "OperationRatios.TotalDebtEquityRatio.Value")),
-                revenue_growth=_safe_number(_nested_attr(item, "OperationRatios.RevenueGrowth.Value")),
-                net_income_growth=_safe_number(_nested_attr(item, "OperationRatios.NetIncomeGrowth.Value")),
-                pe_ratio=_safe_number(_nested_attr(item, "ValuationRatios.PERatio")),
-                peg_ratio=_safe_number(_nested_attr(item, "ValuationRatios.PEGRatio")),
+    def _rank_and_select(self, fundamentals) -> List[Any]:
+        """Rank shortlisted fundamentals and return LEAN symbols."""
+        snapshots = []  # type: List[FundamentalSnapshot]
+        for item in fundamentals:
+            symbol_str = str(item.Symbol)
+            self.symbol_registry[symbol_str] = item.Symbol
+            snapshots.append(
+                FundamentalSnapshot(
+                    symbol=symbol_str,
+                    as_of=datetime.now(UTC),
+                    has_fundamental_data=True,
+                    market_cap=_safe_number(getattr(item, "MarketCap", None), 0.0) or 0.0,
+                    exchange_id=str(_nested_attr(item, "CompanyReference.PrimaryExchangeID", "")),
+                    price=_safe_number(getattr(item, "Price", None), 0.0) or 0.0,
+                    volume=_safe_number(getattr(item, "Volume", None), 0.0) or 0.0,
+                    roe=_safe_number(_nested_attr(item, "OperationRatios.ROE.Value")),
+                    gross_margin=_safe_number(_nested_attr(item, "OperationRatios.GrossMargin.Value")),
+                    debt_to_equity=_safe_number(_nested_attr(item, "OperationRatios.TotalDebtEquityRatio.Value")),
+                    revenue_growth=_safe_number(_nested_attr(item, "OperationRatios.RevenueGrowth.Value")),
+                    net_income_growth=_safe_number(_nested_attr(item, "OperationRatios.NetIncomeGrowth.Value")),
+                    pe_ratio=_safe_number(_nested_attr(item, "ValuationRatios.PERatio")),
+                    peg_ratio=_safe_number(_nested_attr(item, "ValuationRatios.PEGRatio")),
+                )
             )
-            snapshots.append(snapshot)
 
-        ranked = rank_fundamental_candidates(snapshots, self.strategy)
-        pool_size = self.strategy.rebalance.max_holdings * self.strategy.rebalance.candidate_pool_multiplier
+        ranked = rank_fundamental_candidates(snapshots, self.config)
+        pool_size = int(self.strategy["rebalance"]["max_holdings"]) * int(
+            self.strategy["rebalance"]["candidate_pool_multiplier"]
+        )
         shortlisted = ranked[:pool_size]
         shortlisted_symbols = {candidate.symbol for candidate in shortlisted}
         self.current_fundamentals = {
             snapshot.symbol: snapshot for snapshot in snapshots if snapshot.symbol in shortlisted_symbols
         }
-        return [item.Symbol for item in fine if str(item.Symbol) in shortlisted_symbols]
+        self._emit_audit(
+            "universe_selection",
+            {
+                "fine_count": len(snapshots),
+                "ranked_count": len(ranked),
+                "shortlisted_count": len(shortlisted_symbols),
+                "selected_symbols": sorted(shortlisted_symbols),
+                "diagnostics": self._fundamental_diagnostics(snapshots),
+            },
+        )
+        self._set_runtime_statistic("LastUniverseSelectionAt", self._runtime_stamp())
+        self._set_runtime_statistic("LastUniverseFineCount", str(len(snapshots)))
+        self._set_runtime_statistic("LastUniverseRankedCount", str(len(ranked)))
+        self._set_runtime_statistic("LastUniverseShortlistedCount", str(len(shortlisted_symbols)))
+        self._set_runtime_statistic("LastUniverseCurrentFundamentals", str(len(self.current_fundamentals)))
+        diagnostics = self._fundamental_diagnostics(snapshots)
+        self._set_runtime_statistic("LastUniverseDiagExchange", str(diagnostics["exchange_match_count"]))
+        self._set_runtime_statistic("LastUniverseDiagROE", str(diagnostics["roe_threshold_count"]))
+        self._set_runtime_statistic("LastUniverseDiagPEG", str(diagnostics["peg_threshold_count"]))
+        return [item.Symbol for item in fundamentals if str(item.Symbol) in shortlisted_symbols]
 
-    def OnSecuritiesChanged(self, changes) -> None:  # noqa: N802 - LEAN naming
-        """Bootstrap timing history for newly added symbols."""
+    def OnSecuritiesChanged(self, changes) -> None:  # noqa: N802
+        """Bootstrap timing history for newly added symbols and prune removed entries."""
 
         added = getattr(changes, "AddedSecurities", [])
+        removed = getattr(changes, "RemovedSecurities", [])
         for security in added:
-            symbol = str(getattr(security, "Symbol", security))
+            symbol = getattr(security, "Symbol", security)
+            symbol_str = str(symbol)
+            self.symbol_registry[symbol_str] = symbol
             try:
-                self.timing_state[symbol] = self._bootstrap_timing(symbol)
+                self._bootstrap_timing(symbol)
             except Exception as exc:  # pragma: no cover - LEAN runtime branch
-                self.logger.warning("timing bootstrap failed for %s: %s", symbol, exc)
+                self._emit_audit("timing_bootstrap_failed", {"symbol": symbol_str, "error": str(exc)})
+        for security in removed:
+            symbol = getattr(security, "Symbol", security)
+            symbol_str = str(symbol)
+            self.symbol_state.pop(symbol_str, None)
+            self.timing_features.pop(symbol_str, None)
 
-    def _bootstrap_timing(self, symbol: str):
-        history_days = max(self.strategy.timing.long_sma, self.settings.execution.bootstrap_history_days)
-        if not hasattr(self, "History"):
-            return build_timing_features(symbol, [], [], self.strategy)
-        history = self.History(symbol, history_days, Resolution.Daily)
-        closes: list[float] = []
-        volumes: list[float] = []
+    def OnData(self, data) -> None:  # noqa: N802
+        """Update daily timing state for tracked securities."""
+
+        bars = getattr(data, "Bars", None)
+        if bars is None:
+            return
+        tracked_symbols = set(self.current_fundamentals) | set(self.symbol_state)
+        for symbol_str in list(tracked_symbols):
+            lean_symbol = self.symbol_registry.get(symbol_str)
+            if lean_symbol is None:
+                continue
+            if hasattr(bars, "ContainsKey") and not bars.ContainsKey(lean_symbol):
+                continue
+            try:
+                bar = bars[lean_symbol]
+            except Exception:
+                continue
+            state = self._ensure_symbol_state(symbol_str)
+            last_updated = getattr(bar, "EndTime", None) or getattr(self, "Time", None) or datetime.now(UTC)
+            state.add_bar(float(bar.Close), float(bar.Volume), last_updated)
+            self.timing_features[symbol_str] = build_timing_features(
+                symbol_str,
+                list(state.closes),
+                list(state.volumes),
+                self.config,
+                last_updated=state.last_updated,
+            )
+        self._set_runtime_statistic("LastTimingUpdateAt", self._runtime_stamp())
+        self._set_runtime_statistic("LastTimingFeatureCount", str(len(self.timing_features)))
+
+    def _ensure_symbol_state(self, symbol: str) -> SymbolState:
+        maxlen = max(
+            int(self.strategy["timing"]["long_sma"]),
+            int(self.runtime.get("bootstrap_history_days", 35)),
+            int(self.strategy["timing"]["price_window"]),
+            int(self.strategy["timing"]["volume_window"]),
+        )
+        state = self.symbol_state.get(symbol)
+        if state is None:
+            state = SymbolState(maxlen=maxlen)
+            self.symbol_state[symbol] = state
+        return state
+
+    def _bootstrap_timing(self, symbol: Any) -> None:
+        symbol_str = str(symbol)
+        state = self._ensure_symbol_state(symbol_str)
+        history_days = max(
+            int(self.strategy["timing"]["long_sma"]),
+            int(self.runtime.get("bootstrap_history_days", 35)),
+        )
+        history_fn = getattr(self, "History", None)
+        if history_fn is None:
+            return
+        history = history_fn(symbol, history_days, DAILY_RESOLUTION)
+        closes = []  # type: List[float]
+        volumes = []  # type: List[float]
         if history is not None:
             try:
-                if hasattr(history, "loc"):
-                    symbol_history = history.loc[str(symbol)]
-                    closes = [float(value) for value in symbol_history["close"].tolist()]
-                    volumes = [float(value) for value in symbol_history["volume"].tolist()]
+                if hasattr(history, "columns"):
+                    close_series = history["close"]
+                    volume_series = history["volume"]
+                    closes = [float(value) for value in list(close_series)]
+                    volumes = [float(value) for value in list(volume_series)]
+                else:
+                    bars = list(history)
+                    closes = [float(getattr(bar, "Close", 0.0)) for bar in bars]
+                    volumes = [float(getattr(bar, "Volume", 0.0)) for bar in bars]
             except Exception:
-                try:
-                    closes = [float(bar.Close) for bar in history]
-                    volumes = [float(bar.Volume) for bar in history]
-                except Exception:
-                    closes = []
-                    volumes = []
-        return build_timing_features(symbol, closes, volumes, self.strategy)
+                closes = []
+                volumes = []
+        state.extend(closes, volumes, getattr(self, "Time", None) or datetime.now(UTC))
+        self.timing_features[symbol_str] = build_timing_features(
+            symbol_str,
+            list(state.closes),
+            list(state.volumes),
+            self.config,
+            last_updated=state.last_updated,
+        )
 
-    def Rebalance(self) -> None:  # noqa: N802 - LEAN naming
+    def _rebalance_key(self) -> str:
+        current_time = getattr(self, "Time", None) or datetime.now(UTC)
+        return f"{self.strategy['algorithm_name']}:{current_time.strftime('%Y-%m')}"
+
+    def _has_completed_rebalance(self, rebalance_key: str) -> bool:
+        if self.last_rebalance_key == rebalance_key:
+            return True
+        object_store = getattr(self, "ObjectStore", None)
+        if object_store is not None:
+            try:
+                if object_store.ContainsKey(self.REBALANCE_STATE_KEY):
+                    return object_store.Read(self.REBALANCE_STATE_KEY) == rebalance_key
+            except Exception:
+                return False
+        return False
+
+    def _mark_rebalance_completed(self, rebalance_key: str) -> None:
+        self.last_rebalance_key = rebalance_key
+        object_store = getattr(self, "ObjectStore", None)
+        if object_store is not None:
+            try:
+                object_store.Save(self.REBALANCE_STATE_KEY, rebalance_key)
+            except Exception:
+                pass
+
+    def Rebalance(self) -> None:  # noqa: N802
         """Construct target weights with restart-safe idempotency."""
 
-        rebalance_key = f"{self.strategy.algorithm_name}:{self.Time.strftime('%Y-%m')}" if hasattr(self, "Time") else (
-            f"{self.strategy.algorithm_name}:{datetime.now(UTC).strftime('%Y-%m')}"
-        )
-        self.last_rebalance_key = rebalance_key
-        if self.state_store.has_rebalance(rebalance_key):
-            self.logger.info("rebalance skip key=%s reason=already_completed", rebalance_key)
+        rebalance_key = self._rebalance_key()
+        if self._has_completed_rebalance(rebalance_key):
+            self._set_runtime_statistic("LastRebalanceCheckAt", self._runtime_stamp())
+            self._set_runtime_statistic("LastRebalanceCheckKey", rebalance_key)
+            self._set_runtime_statistic("LastRebalanceCheckState", "already_completed")
+            self._emit_audit("rebalance_skip", {"rebalance_key": rebalance_key, "reason": "already_completed"})
+            return
+
+        if not self.current_fundamentals:
+            self._set_runtime_statistic("LastRebalanceCheckAt", self._runtime_stamp())
+            self._set_runtime_statistic("LastRebalanceCheckKey", rebalance_key)
+            self._set_runtime_statistic("LastRebalanceCheckState", "no_current_fundamentals")
+            self._emit_audit(
+                "rebalance_deferred",
+                {
+                    "rebalance_key": rebalance_key,
+                    "reason": "no_current_fundamentals",
+                    "timing_feature_count": len(self.timing_features),
+                },
+            )
             return
 
         stale_symbols = [
             symbol
-            for symbol, state in self.timing_state.items()
-            if stale_data_detected(state.last_updated, self.settings.execution.stale_data_max_age_minutes)
+            for symbol, features in self.timing_features.items()
+            if stale_data_detected(
+                features.last_updated,
+                int(self.runtime.get("stale_data_max_age_minutes", 30)),
+                now=getattr(self, "Time", None) or datetime.now(UTC),
+            )
         ]
         if stale_symbols:
-            self.logger.warning("rebalance skip key=%s reason=stale_data symbols=%s", rebalance_key, stale_symbols)
+            self._set_runtime_statistic("LastRebalanceCheckAt", self._runtime_stamp())
+            self._set_runtime_statistic("LastRebalanceCheckKey", rebalance_key)
+            self._set_runtime_statistic("LastRebalanceCheckState", "stale_data")
+            self._set_runtime_statistic("LastRebalanceStaleSymbolCount", str(len(stale_symbols)))
+            self._emit_audit(
+                "rebalance_skip",
+                {"rebalance_key": rebalance_key, "reason": "stale_data", "symbols": stale_symbols},
+            )
             return
 
         intent = build_rebalance_intent(
             rebalance_key=rebalance_key,
             snapshots=self.current_fundamentals.values(),
-            timing_map=self.timing_state,
-            strategy=self.strategy,
+            timing_map=self.timing_features,
+            config=self.config,
         )
-        intent_hash = hash_rebalance_intent(intent)
-        if not self.state_store.mark_rebalance_started(
-            rebalance_key=rebalance_key,
-            intent_hash=intent_hash,
-            metadata={"selected_symbols": intent.selected_symbols},
-        ):
-            self.logger.info("rebalance already started key=%s", rebalance_key)
-            return
-
-        self.audit.emit(
-            AuditEvent(
-                event_type="rebalance_intent",
-                payload={
+        if not intent.target_weights:
+            self._set_runtime_statistic("LastRebalanceCheckAt", self._runtime_stamp())
+            self._set_runtime_statistic("LastRebalanceCheckKey", rebalance_key)
+            self._set_runtime_statistic("LastRebalanceCheckState", "empty_targets")
+            self._set_runtime_statistic("LastRebalanceCandidateCount", str(len(intent.scored_candidates)))
+            self._set_runtime_statistic("LastRebalanceTargetCount", "0")
+            self._emit_audit(
+                "rebalance_deferred",
+                {
                     "rebalance_key": rebalance_key,
-                    "selected_symbols": intent.selected_symbols,
-                    "target_weights": intent.target_weights,
+                    "reason": "empty_targets",
                     "candidate_count": len(intent.scored_candidates),
+                    "current_fundamental_count": len(self.current_fundamentals),
+                    "timing_feature_count": len(self.timing_features),
                 },
             )
-        )
-
-        if hasattr(self, "SetHoldings"):
-            for symbol, weight in intent.target_weights.items():
-                self.SetHoldings(symbol, weight)
-
-        self.state_store.mark_rebalance_completed(rebalance_key, metadata={"intent_hash": intent_hash})
-
-    def OnOrderEvent(self, orderEvent) -> None:  # noqa: N802 - LEAN naming
-        """Persist structured order event logs."""
-
-        self.audit.emit(
-            AuditEvent(
-                event_type="order_event",
-                payload={
-                    "symbol": str(getattr(orderEvent, "Symbol", "")),
-                    "status": str(getattr(orderEvent, "Status", "")),
-                    "fill_price": _safe_number(getattr(orderEvent, "FillPrice", None)),
-                    "fill_quantity": _safe_number(getattr(orderEvent, "FillQuantity", None)),
+            return
+        self._set_runtime_statistic("LastRebalanceCheckAt", self._runtime_stamp())
+        self._set_runtime_statistic("LastRebalanceCheckKey", rebalance_key)
+        self._set_runtime_statistic("LastRebalanceCheckState", "intent_ready")
+        self._set_runtime_statistic("LastRebalanceCandidateCount", str(len(intent.scored_candidates)))
+        self._set_runtime_statistic("LastRebalanceTargetCount", str(len(intent.target_weights)))
+        pending_symbols = self._pending_trade_symbols(set(intent.target_weights))
+        if pending_symbols:
+            self._set_runtime_statistic("LastRebalanceCheckState", "pending_prices")
+            self._set_runtime_statistic("LastRebalancePendingPriceCount", str(len(pending_symbols)))
+            self._emit_audit(
+                "rebalance_deferred",
+                {
+                    "rebalance_key": rebalance_key,
+                    "reason": "pending_prices",
+                    "symbols": pending_symbols,
+                    "candidate_count": len(intent.scored_candidates),
+                    "target_count": len(intent.target_weights),
                 },
             )
+            return
+        self._emit_rebalance_intent(intent)
+        self._apply_targets(intent)
+        self._mark_rebalance_completed(rebalance_key)
+        self._set_runtime_statistic("LastRebalanceCheckState", "executed")
+        self._set_runtime_statistic("LastRebalancePendingPriceCount", "0")
+        self._set_runtime_statistic("LastSuccessfulRebalanceAt", self._runtime_stamp())
+        self._set_runtime_statistic("LastSuccessfulRebalanceKey", rebalance_key)
+        self._set_runtime_statistic("LastSuccessfulTargetCount", str(len(intent.target_weights)))
+
+    def _apply_targets(self, intent: RebalanceIntent) -> None:
+        target_symbols = set(intent.target_weights)
+
+        if hasattr(self, "Portfolio"):
+            for symbol_str, lean_symbol in list(self.symbol_registry.items()):
+                try:
+                    holding = self.Portfolio[lean_symbol]
+                except Exception:
+                    continue
+                if getattr(holding, "Invested", False) and symbol_str not in target_symbols:
+                    liquidate = getattr(self, "Liquidate", None)
+                    if liquidate is not None:
+                        liquidate(lean_symbol, "QualityGrowthPi deselection")
+
+        for symbol_str, weight in intent.target_weights.items():
+            target_symbol = self.symbol_registry.get(symbol_str, symbol_str)
+            set_holdings = getattr(self, "SetHoldings", None)
+            if set_holdings is not None:
+                set_holdings(target_symbol, float(weight))
+
+    def _pending_trade_symbols(self, target_symbols: set[str]) -> List[str]:
+        """Return symbols that are selected for action but still lack a tradable price."""
+
+        symbols_to_trade = set(target_symbols)
+        if hasattr(self, "Portfolio"):
+            for symbol_str, lean_symbol in list(self.symbol_registry.items()):
+                try:
+                    holding = self.Portfolio[lean_symbol]
+                except Exception:
+                    continue
+                if getattr(holding, "Invested", False) and symbol_str not in target_symbols:
+                    symbols_to_trade.add(symbol_str)
+        pending = []
+        for symbol_str in sorted(symbols_to_trade):
+            lean_symbol = self.symbol_registry.get(symbol_str)
+            if lean_symbol is None or not self._security_has_accurate_price(lean_symbol):
+                pending.append(symbol_str)
+        return pending
+
+    def _security_has_accurate_price(self, lean_symbol: Any) -> bool:
+        """Check whether LEAN has received a reliable tradable price for a security."""
+
+        securities = getattr(self, "Securities", None)
+        if securities is None:
+            return True
+        try:
+            security = securities[lean_symbol]
+        except Exception:
+            return False
+        if not bool(getattr(security, "IsTradable", True)):
+            return False
+        if not bool(getattr(security, "HasData", False)):
+            return False
+        return (_safe_number(getattr(security, "Price", None), 0.0) or 0.0) > 0.0
+
+    def _emit_rebalance_intent(self, intent: RebalanceIntent) -> None:
+        self._emit_audit(
+            "rebalance_intent",
+            {
+                "rebalance_key": intent.rebalance_key,
+                "selected_symbols": intent.selected_symbols,
+                "target_weights": intent.target_weights,
+                "candidate_count": len(intent.scored_candidates),
+                "intent_hash": hash_rebalance_intent(intent),
+            },
         )
+
+    def OnOrderEvent(self, orderEvent) -> None:  # noqa: N802
+        """Emit structured order event logs."""
+
+        status = str(getattr(orderEvent, "Status", ""))
+        if status not in {"Filled", "PartiallyFilled", "Canceled", "Invalid"}:
+            return
+        self._emit_audit(
+            "order_event",
+            {
+                "symbol": str(getattr(orderEvent, "Symbol", "")),
+                "status": status,
+                "fill_price": _safe_number(getattr(orderEvent, "FillPrice", None)),
+                "fill_quantity": _safe_number(getattr(orderEvent, "FillQuantity", None)),
+            },
+        )
+
+    def _emit_audit(self, event_type: str, payload: Dict[str, Any]) -> None:
+        if not self.audit_enabled:
+            return
+        encoded = json.dumps(
+            {
+                "event_type": event_type,
+                "payload": payload,
+                "ts": (getattr(self, "Time", None) or datetime.now(UTC)).isoformat(),
+            },
+            sort_keys=True,
+            default=str,
+        )
+        if hasattr(self, "Log"):
+            self.Log(encoded)
+
+    def _set_runtime_statistic(self, key: str, value: str) -> None:
+        setter = getattr(self, "SetRuntimeStatistic", None)
+        if setter is not None:
+            try:
+                setter(key, value)
+            except Exception:
+                pass
+
+    def _runtime_stamp(self) -> str:
+        return (getattr(self, "Time", None) or datetime.now(UTC)).isoformat()
+
+    def _fundamental_diagnostics(self, snapshots: List[FundamentalSnapshot]) -> Dict[str, Any]:
+        thresholds = self.strategy["thresholds"]
+        universe = self.strategy["universe"]
+        return {
+            "exchange_match_count": sum(snapshot.exchange_id == str(universe["exchange_id"]) for snapshot in snapshots),
+            "min_market_cap_count": sum(
+                snapshot.market_cap > float(universe["min_market_cap"]) for snapshot in snapshots
+            ),
+            "min_price_count": sum(snapshot.price > float(universe["min_price"]) for snapshot in snapshots),
+            "positive_volume_count": sum(snapshot.volume > 0 for snapshot in snapshots),
+            "roe_threshold_count": sum(
+                snapshot.roe is not None and snapshot.roe >= float(thresholds["roe_min"]) for snapshot in snapshots
+            ),
+            "gross_margin_threshold_count": sum(
+                snapshot.gross_margin is not None and snapshot.gross_margin >= float(thresholds["gross_margin_min"])
+                for snapshot in snapshots
+            ),
+            "debt_to_equity_threshold_count": sum(
+                snapshot.debt_to_equity is not None
+                and float(thresholds["debt_to_equity_min"]) < snapshot.debt_to_equity <= float(thresholds["debt_to_equity_max"])
+                for snapshot in snapshots
+            ),
+            "revenue_growth_threshold_count": sum(
+                snapshot.revenue_growth is not None
+                and snapshot.revenue_growth >= float(thresholds["revenue_growth_min"])
+                for snapshot in snapshots
+            ),
+            "net_income_growth_threshold_count": sum(
+                snapshot.net_income_growth is None
+                or snapshot.net_income_growth == 0
+                or snapshot.net_income_growth >= float(thresholds["net_income_growth_min"])
+                for snapshot in snapshots
+            ),
+            "positive_pe_count": sum(
+                snapshot.pe_ratio is not None and snapshot.pe_ratio > float(thresholds["pe_ratio_min"])
+                for snapshot in snapshots
+            ),
+            "peg_threshold_count": sum(
+                snapshot.peg_ratio is not None
+                and float(thresholds["peg_ratio_min"]) < snapshot.peg_ratio <= float(thresholds["peg_ratio_max"])
+                for snapshot in snapshots
+            ),
+        }

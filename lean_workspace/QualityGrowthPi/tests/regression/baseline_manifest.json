@@ -1,10 +1,25 @@
 {
+  "captured_baselines": [
+    {
+      "backtest_id": "a062e595bca7b8f40325c28ac37dc9b1",
+      "captured_at": "2026-03-07T15:29:29.271181+00:00",
+      "closed_trade_count": 1057,
+      "net_profit": "91.702%",
+      "order_count": 99,
+      "path": "lean_workspace/QualityGrowthPi/tests/regression/cloud_baselines/a062e595bca7b8f40325c28ac37dc9b1",
+      "project_id": 28761844,
+      "reported_total_orders": 1469,
+      "return": "91.70 %"
+    }
+  ],
   "description": "Baseline artefact slots for future QuantConnect comparison bundles.",
   "expected_artifacts": [
     "universe_snapshots",
     "score_tables",
     "target_weights",
     "order_events",
-    "holdings_snapshots"
-  ]
+    "holdings_snapshots",
+    "cloud_baseline_bundles"
+  ],
+  "latest_baseline_id": "a062e595bca7b8f40325c28ac37dc9b1"
 }

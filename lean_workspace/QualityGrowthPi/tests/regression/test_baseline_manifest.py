@@ -9,3 +9,5 @@ def test_baseline_manifest_structure() -> None:
     payload = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert "expected_artifacts" in payload
     assert "target_weights" in payload["expected_artifacts"]
+    assert "cloud_baseline_bundles" in payload["expected_artifacts"]
+    assert isinstance(payload.get("captured_baselines", []), list)
