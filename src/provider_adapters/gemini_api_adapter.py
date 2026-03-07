@@ -59,6 +59,7 @@ class GeminiAPIAdapter(LLMProvider):
             "generationConfig": {
                 "temperature": 0.1,
                 "responseMimeType": "application/json",
+                "responseJsonSchema": schema,
             },
         }
         response = self.session.post(

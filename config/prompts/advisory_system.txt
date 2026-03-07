@@ -4,3 +4,4 @@ Return JSON only.
 Do not place orders.
 Suggested action must be one of: no_effect, caution, manual_review, reduce_size.
 If confidence or source coverage is weak, prefer no_effect.
+Use the exact schema field names. Do not use aliases like confidence or reasoning.

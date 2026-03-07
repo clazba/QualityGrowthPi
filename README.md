@@ -33,19 +33,45 @@ make verify
 make test
 make smoke
 make llm-smoke
+make e2e
 ```
 
 For an operator-focused setup and usage guide, see [docs/quickstart.md](/Volumes/PiShare/quant_gpt/docs/quickstart.md).
 
 ## Execution Paths
 
-- Backtest: `make backtest` (`QuantConnect cloud` is the default path)
-- Paper trading: `make paper-check`, `make live-paper`, `make paper-status`, `make paper-stop` (`Alpaca paper` is the default first stage)
+- Backtest: `make backtest` (`QuantConnect cloud` is the default and validated path)
+- Operator workflow: `make workflow` (builds the deterministic opportunity report, loads recent news, runs LLM advisory review for current paper candidates, and writes a markdown report under `results/opportunities/`)
+- Paper trading: `make paper-check`, `./scripts/list_qc_nodes.sh`, `make live-paper`, `make paper-status`, `make paper-stop` (`Alpaca paper` via `QuantConnect cloud + Alpaca brokerage` is the default first stage)
+- LLM advisory history: `make llm-report`
 - Live provider path: `scripts/run_live_provider.sh`
+- Baseline capture: `make baseline BACKTEST_ID=<cloud_backtest_id>`
+
+## Validated Operator Flow
+
+The repository has been validated on the Pi for:
+
+- cloud backtests with QuantConnect project sync via API
+- cloud paper deployment with Alpaca brokerage
+- online end-to-end validation via `./scripts/run_e2e.sh --online`
+- regression and unit coverage across the shared control plane and LEAN workspace
+
+Typical operator sequence:
+
+```bash
+make verify
+make test
+make backtest
+make paper-check
+./scripts/list_qc_nodes.sh
+make live-paper
+make paper-status
+```
 
 ## Current Limits
 
 - cloud backtests can bypass local dataset downloads while keeping the repository on-prem; fully local backtests still require licensed local-compatible datasets
+- cloud Alpaca paper deployment requires an available QuantConnect live node; `Quant Researcher` allows live-node usage but does not automatically provision one for free
 - the first local fallback stack is Massive + SEC + Alpaca + Alpha Vantage, which is designed for staged paper/live approximation rather than exact QuantConnect parity
 - provider adapters for Massive, Alpaca, Alpha Vantage, SEC, IBKR, and Gemini are scaffolded with safety guards and offline fallbacks, not fully credentialed here
 - LEAN engine execution depends on the local host having `lean` installed and authenticated

@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 PROJECT_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
-.PHONY: setup env verify test smoke backtest live-paper paper-check paper-status paper-stop paper-liquidate e2e baseline clean llm-smoke llm-report lint
+.PHONY: setup env verify test smoke backtest workflow live-paper paper-check paper-status paper-stop paper-liquidate e2e baseline clean llm-smoke llm-report lint
 
 setup:
 	./scripts/bootstrap_pi.sh
@@ -20,6 +20,9 @@ smoke:
 
 backtest:
 	./scripts/run_backtest.sh
+
+workflow:
+	./scripts/run_trade_workflow.sh
 
 live-paper:
 	./scripts/run_live_paper.sh
@@ -53,7 +56,7 @@ llm-smoke:
 	./scripts/llm_smoke_test.sh
 
 llm-report:
-	python3 -m src.main llm-report
+	./scripts/llm_report.sh
 
 lint:
 	python3 -m compileall src tests lean_workspace/QualityGrowthPi

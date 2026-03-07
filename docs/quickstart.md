@@ -182,7 +182,7 @@ Useful commands:
 python -m src.main health
 python -m src.main init-db
 python -m src.main provider-plan
-python -m src.main llm-report
+./scripts/llm_report.sh
 ```
 
 What they do:
