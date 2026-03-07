@@ -37,6 +37,10 @@ fi
 
 cd "$PROJECT_ROOT/lean_workspace"
 
+if [[ "$BACKTEST_MODE" == "cloud" && "$LEAN_CLOUD_OPEN_RESULTS" != "true" && -z "${BROWSER:-}" ]]; then
+  export BROWSER=/bin/true
+fi
+
 case "$BACKTEST_MODE" in
   cloud)
     args=("cloud" "backtest" "$PROJECT_SELECTOR")

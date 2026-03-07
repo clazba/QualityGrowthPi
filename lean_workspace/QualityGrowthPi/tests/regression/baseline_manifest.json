@@ -1,6 +1,17 @@
 {
   "captured_baselines": [
     {
+      "backtest_id": "c7a45be295be63e6047382f693267109",
+      "captured_at": "2026-03-07T16:29:17.038098+00:00",
+      "closed_trade_count": 1241,
+      "net_profit": "94.632%",
+      "order_count": 1729,
+      "path": "lean_workspace/QualityGrowthPi/tests/regression/cloud_baselines/c7a45be295be63e6047382f693267109",
+      "project_id": 28761844,
+      "reported_total_orders": 1729,
+      "return": "94.63 %"
+    },
+    {
       "backtest_id": "a062e595bca7b8f40325c28ac37dc9b1",
       "captured_at": "2026-03-07T15:29:29.271181+00:00",
       "closed_trade_count": 1057,
@@ -21,5 +32,5 @@
     "holdings_snapshots",
     "cloud_baseline_bundles"
   ],
-  "latest_baseline_id": "a062e595bca7b8f40325c28ac37dc9b1"
+  "latest_baseline_id": "c7a45be295be63e6047382f693267109"
 }

@@ -23,7 +23,17 @@ cd "$PROJECT_ROOT/lean_workspace"
 
 case "$PAPER_DEPLOYMENT_TARGET" in
   cloud)
-    lean cloud status "$PROJECT_SELECTOR"
+    STATUS_OUTPUT="$(lean cloud status "$PROJECT_SELECTOR" 2>&1)" || STATUS_EXIT=$?
+    STATUS_EXIT="${STATUS_EXIT:-0}"
+    if [[ "$STATUS_EXIT" -ne 0 ]]; then
+      if [[ "$STATUS_OUTPUT" == *"No live deployment found"* ]]; then
+        printf 'No live deployment found for %s.\n' "$PROJECT_SELECTOR"
+        exit 0
+      fi
+      printf '%s\n' "$STATUS_OUTPUT" >&2
+      exit "$STATUS_EXIT"
+    fi
+    printf '%s\n' "$STATUS_OUTPUT"
     ;;
   local)
     printf 'No dedicated local paper status helper is implemented. Inspect the latest local LEAN live container/logs directly.\n' >&2

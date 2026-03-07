@@ -1,0 +1,10 @@
+{
+  "backtest_url": "https://www.quantconnect.com/project/28761844/c7a45be295be63e6047382f693267109",
+  "captured_at": "2026-03-07T16:29:16.981995+00:00",
+  "closed_trade_count": 1241,
+  "order_count": 1729,
+  "reported_total_orders": 1729,
+  "source_backtest_id": "c7a45be295be63e6047382f693267109",
+  "source_diagnostics_path": "/mnt/nvme_data/shared/quant_gpt/results/backtests/cloud/c7a45be295be63e6047382f693267109.json",
+  "source_project_id": 28761844
+}

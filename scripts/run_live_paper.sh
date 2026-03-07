@@ -69,6 +69,10 @@ fi
 
 cd "$PROJECT_ROOT/lean_workspace"
 
+if [[ "$PAPER_DEPLOYMENT_TARGET" == "cloud" && "$LEAN_CLOUD_OPEN_PAPER" != "true" && -z "${BROWSER:-}" ]]; then
+  export BROWSER=/bin/true
+fi
+
 case "$PAPER_DEPLOYMENT_TARGET" in
   cloud)
     args=("cloud" "live" "deploy" "$PROJECT_SELECTOR")
@@ -94,7 +98,9 @@ case "$PAPER_DEPLOYMENT_TARGET" in
         ;;
     esac
     args+=("--data-provider-live" "$PAPER_LIVE_DATA_PROVIDER")
-    args+=("--data-provider-historical" "$PAPER_HISTORICAL_DATA_PROVIDER")
+    if [[ -n "${PAPER_HISTORICAL_DATA_PROVIDER:-}" ]]; then
+      printf 'Ignoring PAPER_HISTORICAL_DATA_PROVIDER=%s for cloud paper deployment; the current LEAN CLI only accepts --data-provider-live in cloud mode.\n' "$PAPER_HISTORICAL_DATA_PROVIDER"
+    fi
     args+=("--node" "$LEAN_CLOUD_PAPER_NODE")
     args+=("--auto-restart" "$LEAN_CLOUD_PAPER_AUTO_RESTART")
     args+=("--notify-order-events" "$LEAN_CLOUD_PAPER_NOTIFY_ORDER_EVENTS")
