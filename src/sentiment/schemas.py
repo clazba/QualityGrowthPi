@@ -9,12 +9,14 @@ from typing import Any
 from jsonschema import ValidationError, validate
 
 from src.models import LLMAdvisoryOutput
+from src.settings import resolve_project_path
 
 
 def load_schema(schema_path: Path) -> dict[str, Any]:
     """Load a JSON schema from disk."""
 
-    with schema_path.open("r", encoding="utf-8") as handle:
+    resolved_path = resolve_project_path(schema_path)
+    with resolved_path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
 
 

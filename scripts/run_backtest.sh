@@ -2,6 +2,18 @@
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ENV_FILE="$PROJECT_ROOT/.env"
+
+if [[ -f "$ENV_FILE" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  set +a
+fi
+
+BACKTEST_MODE="${BACKTEST_MODE:-cloud}"
+LEAN_CLOUD_PUSH_ON_BACKTEST="${LEAN_CLOUD_PUSH_ON_BACKTEST:-true}"
+LEAN_CLOUD_OPEN_RESULTS="${LEAN_CLOUD_OPEN_RESULTS:-false}"
 RESULTS_DIR="${QUANT_GPT_RUNTIME_ROOT:-$PROJECT_ROOT}/results/backtests"
 mkdir -p "$RESULTS_DIR"
 
@@ -10,12 +22,39 @@ if ! command -v lean >/dev/null 2>&1; then
   exit 1
 fi
 
-read -r -p "Run LEAN backtest for QualityGrowthPi? This may use network or Docker depending on local LEAN configuration. [y/N]: " reply
+"$PROJECT_ROOT/scripts/sync_lean_config.sh"
+
+read -r -p "Run LEAN backtest for QualityGrowthPi in ${BACKTEST_MODE} mode? [y/N]: " reply
 if [[ ! "$reply" =~ ^[Yy]$ ]]; then
   printf 'Backtest aborted by operator.\n'
   exit 0
 fi
 
 cd "$PROJECT_ROOT/lean_workspace"
-printf 'Running backtest. Results directory: %s\n' "$RESULTS_DIR"
-lean backtest "QualityGrowthPi" --output "$RESULTS_DIR"
+
+case "$BACKTEST_MODE" in
+  cloud)
+    args=("cloud" "backtest" "QualityGrowthPi")
+    if [[ "$LEAN_CLOUD_PUSH_ON_BACKTEST" == "true" ]]; then
+      args+=("--push")
+    fi
+    if [[ "$LEAN_CLOUD_OPEN_RESULTS" == "true" ]]; then
+      args+=("--open")
+    fi
+    printf 'Running cloud backtest for QualityGrowthPi'
+    if [[ "$LEAN_CLOUD_PUSH_ON_BACKTEST" == "true" ]]; then
+      printf ' with --push'
+    fi
+    printf '.\n'
+    lean "${args[@]}"
+    ;;
+  local)
+    printf 'Running local backtest. Results directory: %s\n' "$RESULTS_DIR"
+    lean backtest "QualityGrowthPi" --output "$RESULTS_DIR"
+    ;;
+  *)
+    printf 'Unsupported BACKTEST_MODE: %s\n' "$BACKTEST_MODE" >&2
+    printf 'Expected "cloud" or "local".\n' >&2
+    exit 1
+    ;;
+esac

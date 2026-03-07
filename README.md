@@ -37,14 +37,14 @@ make llm-smoke
 
 ## Execution Paths
 
-- Backtest: `make backtest`
+- Backtest: `make backtest` (`BACKTEST_MODE=cloud` is the recommended default)
 - Paper trading: `make live-paper`
 - Live provider path: `scripts/run_live_provider.sh`
 
 ## Current Limits
 
-- full QuantConnect data parity requires licensed local-compatible datasets
-- provider adapters for Polygon, IBKR, and Gemini are scaffolded with safety guards and offline fallbacks, not fully credentialed here
+- cloud backtests can bypass local dataset downloads while keeping the repository on-prem; fully local backtests still require licensed local-compatible datasets
+- provider adapters for Massive (formerly Polygon.io), IBKR, and Gemini are scaffolded with safety guards and offline fallbacks, not fully credentialed here
 - LEAN engine execution depends on the local host having `lean` installed and authenticated
 
 See [docs/architecture.md](/Volumes/PiShare/quant_gpt/docs/architecture.md), [docs/deployment.md](/Volumes/PiShare/quant_gpt/docs/deployment.md), and [docs/data-providers.md](/Volumes/PiShare/quant_gpt/docs/data-providers.md).

@@ -8,6 +8,7 @@ if [[ ! -x "$PYTHON_BIN" ]]; then
   PYTHON_BIN="$(command -v python3)"
 fi
 
+cd "$PROJECT_ROOT"
 "$PYTHON_BIN" -m pytest "$PROJECT_ROOT/tests/llm"
 "$PROJECT_ROOT/scripts/llm_healthcheck.sh"
 

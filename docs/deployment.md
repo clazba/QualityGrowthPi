@@ -26,19 +26,28 @@ Primary commands:
 
 Purpose:
 
-- run LEAN-compatible backtests locally
-- direct output artefacts to the NVMe-backed project path
-- preserve result bundles and audit logs
+- run LEAN-compatible backtests with cloud execution preferred
+- keep the repository and operator workflow on-prem while avoiding local dataset downloads where possible
+- preserve result bundles and audit logs for local-mode runs
 
 Execution path:
 
 - bare-metal project tooling always
 - LEAN CLI if installed
-- optional engine image only if LEAN requires it
+- default path: `lean cloud backtest` with `--push`
+- fallback path: local `lean backtest`
+- optional engine image only if LEAN requires it for local execution
 
 Primary command:
 
 - `make backtest`
+
+Configuration:
+
+- `BACKTEST_MODE=cloud` is the recommended default for this repository
+- `LEAN_CLOUD_PUSH_ON_BACKTEST=true` keeps the local repository as the source of truth while pushing the current workspace to QuantConnect for the cloud run
+- `LEAN_CLOUD_OPEN_RESULTS=false` avoids browser coupling on headless Pi hosts
+- a QuantConnect organization on the `Quant Researcher` tier is sufficient for this cloud-backtest workflow; larger tiers are only needed for more concurrency, collaboration, or operational scale
 
 ### 3. Paper Trading Mode
 
@@ -138,7 +147,8 @@ The runtime will be designed so that:
 Full end-to-end operation remains blocked until the operator supplies:
 
 - QuantConnect credentials for LEAN CLI where needed
-- local LEAN-compatible data or a selected alternative provider
+- a QuantConnect organization on a paid tier for CLI cloud backtests
+- local LEAN-compatible data or a selected alternative provider only if local backtests or fully local execution are required
 - Gemini or alternate LLM credentials if advisory mode is enabled
 - broker credentials for paper or live execution
 

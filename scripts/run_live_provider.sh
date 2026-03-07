@@ -21,5 +21,7 @@ if ! command -v lean >/dev/null 2>&1; then
   exit 1
 fi
 
+"$PROJECT_ROOT/scripts/sync_lean_config.sh"
+
 cd "$PROJECT_ROOT/lean_workspace"
 lean live "QualityGrowthPi"

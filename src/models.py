@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class ProviderMode(str, Enum):
@@ -218,7 +218,10 @@ class LLMPromptConfig(BaseConfigModel):
     sentiment: str = "sentiment_system.txt"
     narrative: str = "narrative_system.txt"
     advisory: str = "advisory_system.txt"
-    schema: str = "extraction_schema.json"
+    extraction_schema: str = Field(
+        default="extraction_schema.json",
+        validation_alias=AliasChoices("extraction_schema", "schema"),
+    )
 
 
 class LLMSettingsModel(BaseConfigModel):

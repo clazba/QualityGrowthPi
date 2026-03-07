@@ -45,6 +45,14 @@ def _resolve_path(base: Path, value: str | Path) -> Path:
     return path if path.is_absolute() else (base / path).resolve()
 
 
+def resolve_project_path(path: str | Path, project_root: Path | None = None) -> Path:
+    """Resolve a path relative to the repository root when needed."""
+
+    root = _resolve_project_root(project_root)
+    candidate = Path(path).expanduser()
+    return candidate if candidate.is_absolute() else (root / candidate).resolve()
+
+
 def _env_bool(name: str, default: bool) -> bool:
     raw = os.getenv(name)
     if raw is None:

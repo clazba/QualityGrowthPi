@@ -6,12 +6,13 @@ import json
 from pathlib import Path
 
 from src.models import DeterministicDecisionContext, NewsEvent
+from src.settings import resolve_project_path
 
 
 def load_prompt_template(path: Path) -> str:
     """Load a local prompt template."""
 
-    return path.read_text(encoding="utf-8").strip()
+    return resolve_project_path(path).read_text(encoding="utf-8").strip()
 
 
 def extract_prompt_version(prompt_text: str) -> str:

@@ -13,6 +13,8 @@ if [[ ! -f "$PROJECT_ROOT/.env" ]]; then
   exit 1
 fi
 
+"$PROJECT_ROOT/scripts/sync_lean_config.sh"
+
 read -r -p "Start paper trading mode for QualityGrowthPi? [y/N]: " reply
 if [[ ! "$reply" =~ ^[Yy]$ ]]; then
   printf 'Paper trading aborted by operator.\n'

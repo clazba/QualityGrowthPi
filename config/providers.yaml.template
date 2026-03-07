@@ -9,7 +9,7 @@ provider_modes:
   external_equivalent:
     enabled: true
     description: "Fallback path using external APIs and local adapters."
-    market_data: polygon
+    market_data: massive
     fundamentals: provider_specific_mapping_required
     notes:
       - "Field-level drift must be measured against baseline artefacts."

@@ -15,7 +15,7 @@ llm:
     sentiment: sentiment_system.txt
     narrative: narrative_system.txt
     advisory: advisory_system.txt
-    schema: extraction_schema.json
+    extraction_schema: extraction_schema.json
   policy:
     low_confidence_threshold: 0.55
     low_coverage_threshold: 0.4
