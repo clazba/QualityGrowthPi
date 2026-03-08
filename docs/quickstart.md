@@ -34,7 +34,7 @@ make test
 make backtest
 make workflow
 make llm-report
-python scripts/export_stat_arb_price_history.py --lean-data-root <dir> --output <file>
+python scripts/export_stat_arb_price_history.py --source-mode providers --output <file>
 make upload-stat-arb-model
 python scripts/train_stat_arb_softvote.py --price-history-json <file> --artifact-output <file>
 make paper-check
@@ -56,7 +56,7 @@ What they mean:
   - builds the operator opportunity report and LLM advisory review
 - `make llm-report`
   - prints saved LLM advisories from SQLite
-- `python scripts/export_stat_arb_price_history.py --lean-data-root <dir> --output <file>`
+- `python scripts/export_stat_arb_price_history.py --source-mode providers --output <file>`
   - extracts aligned daily closes from LEAN-style local equity data for the stat-arb trainer
 - `make upload-stat-arb-model`
   - validates and uploads the pinned stat-arb sklearn/joblib artifact to QuantConnect Object Store
@@ -154,7 +154,8 @@ Use this when your Ubuntu trainer has LEAN daily data mounted or copied locally.
 
 ```bash
 python scripts/export_stat_arb_price_history.py \
-  --lean-data-root data/lean \
+  --source-mode providers \
+  --lookback-days 756 \
   --output data/stat_arb_training/stat_arb_price_history.json
 ```
 
