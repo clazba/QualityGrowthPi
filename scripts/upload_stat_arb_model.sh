@@ -48,7 +48,7 @@ from src.stat_arb.model_loader import load_model_artifact_from_path
 
 artifact_path = Path(sys.argv[1]).expanduser().resolve()
 expected_schema_version = os.getenv("STAT_ARB_FEATURE_SCHEMA_VERSION", "stat_arb_v1").strip() or "stat_arb_v1"
-expected_model_version = os.getenv("STAT_ARB_ML_MODEL_VERSION", "ensemble_v1").strip() or "ensemble_v1"
+expected_model_version = os.getenv("STAT_ARB_ML_MODEL_VERSION", "softvote_v2026_03_08").strip() or "softvote_v2026_03_08"
 
 artifact = load_model_artifact_from_path(
     artifact_path,

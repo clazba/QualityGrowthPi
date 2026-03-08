@@ -475,7 +475,7 @@ class StatArbMLSettings:
     mode: str = "embedded_scorecard"
 
     # str. Model version is persisted for regression and audit attribution.
-    model_version: str = "ensemble_v1"
+    model_version: str = "softvote_v2026_03_08"
 
     # float in (0, 1). Higher thresholds reduce Total Orders and Fees, and
     # should improve net expectancy if the model is calibrated.
@@ -487,7 +487,7 @@ class StatArbMLSettings:
 
     # str. Versioned QuantConnect Object Store key for the trained model
     # artifact. Pinning a specific key makes backtests reproducible.
-    object_store_model_key: str = ""
+    object_store_model_key: str = "28761844/stat-arb/models/softvote_v2026_03_08/ensemble.joblib"
 
     # str filesystem path. Used by non-cloud workflows to validate or load the
     # same joblib artifact locally before it is uploaded to QuantConnect.

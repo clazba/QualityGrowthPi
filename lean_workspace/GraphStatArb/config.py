@@ -76,10 +76,10 @@ CONFIG = {
         },
         "ml_filter": {
             "mode": "embedded_scorecard",
-            "model_version": "ensemble_v1",
+            "model_version": "softvote_v2026_03_08",
             "probability_threshold": 0.58,
             "min_confidence": 0.55,
-            "object_store_model_key": "",
+            "object_store_model_key": "28761844/stat-arb/models/softvote_v2026_03_08/ensemble.joblib",
             "local_model_path": "/mnt/nvme_data/shared/quant_gpt/data/models/stat_arb/ensemble.joblib",
             "feature_schema_version": "stat_arb_v1",
             "fallback_mode": "embedded_scorecard",

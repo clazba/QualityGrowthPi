@@ -81,8 +81,8 @@ The graph stat-arb strategy now supports two ML filter backends:
 Pinned environment variables for `object_store_model` mode:
 
 - `STAT_ARB_ML_FILTER_MODE=object_store_model`
-- `STAT_ARB_ML_MODEL_VERSION=<exact_model_version>`
-- `STAT_ARB_OBJECT_STORE_MODEL_KEY=<exact_versioned_key>`
+- `STAT_ARB_ML_MODEL_VERSION=softvote_v2026_03_08`
+- `STAT_ARB_OBJECT_STORE_MODEL_KEY=28761844/stat-arb/models/softvote_v2026_03_08/ensemble.joblib`
 - `STAT_ARB_FEATURE_SCHEMA_VERSION=stat_arb_v1`
 - `STAT_ARB_ML_FALLBACK_MODE=embedded_scorecard`
 

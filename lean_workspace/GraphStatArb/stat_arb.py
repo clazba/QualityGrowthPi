@@ -790,7 +790,7 @@ def build_trade_filter(
         return scorer, status
 
     expected_schema_version = str(ml_cfg.get("feature_schema_version", "stat_arb_v1"))
-    expected_model_version = str(ml_cfg.get("model_version", "ensemble_v1"))
+    expected_model_version = str(ml_cfg.get("model_version", "softvote_v2026_03_08"))
     object_store_model_key = str(ml_cfg.get("object_store_model_key", ""))
     local_model_path = str(ml_cfg.get("local_model_path", ""))
     try:

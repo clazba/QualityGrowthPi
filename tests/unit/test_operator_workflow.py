@@ -268,10 +268,10 @@ def test_build_workflow_report_renders_stat_arb_sections() -> None:
             },
             "ml_filter": {
                 "mode": "object_store_model",
-                "model_version": "ensemble_v1",
+                "model_version": "softvote_v2026_03_08",
                 "probability_threshold": 0.58,
                 "min_confidence": 0.55,
-                "object_store_model_key": "stat-arb/models/ensemble_v1/ensemble.joblib",
+                "object_store_model_key": "28761844/stat-arb/models/softvote_v2026_03_08/ensemble.joblib",
                 "local_model_path": "/tmp/ensemble.joblib",
                 "feature_schema_version": "stat_arb_v1",
             },
@@ -292,8 +292,8 @@ def test_build_workflow_report_renders_stat_arb_sections() -> None:
         "ml_filter_status": {
             "configured_mode": "object_store_model",
             "active_mode": "object_store_model",
-            "configured_model_key": "stat-arb/models/ensemble_v1/ensemble.joblib",
-            "loaded_model_version": "ensemble_v1",
+            "configured_model_key": "28761844/stat-arb/models/softvote_v2026_03_08/ensemble.joblib",
+            "loaded_model_version": "softvote_v2026_03_08",
             "feature_schema_version": "stat_arb_v1",
             "fallback_active": False,
             "load_status": "loaded",

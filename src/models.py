@@ -416,10 +416,10 @@ class MLFilterConfig(BaseConfigModel):
     """Inference-only ML filter configuration."""
 
     mode: MLFilterMode = MLFilterMode.EMBEDDED_SCORECARD
-    model_version: str = "ensemble_v1"
+    model_version: str = "softvote_v2026_03_08"
     probability_threshold: float = 0.58
     min_confidence: float = 0.55
-    object_store_model_key: str = ""
+    object_store_model_key: str = "28761844/stat-arb/models/softvote_v2026_03_08/ensemble.joblib"
     local_model_path: str = ""
     feature_schema_version: str = "stat_arb_v1"
     fallback_mode: MLFilterMode = MLFilterMode.EMBEDDED_SCORECARD

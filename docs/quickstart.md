@@ -124,8 +124,8 @@ Use this only when you are ready to switch the graph stat-arb strategy from the 
 Recommended `.env` values:
 
 - `STAT_ARB_ML_FILTER_MODE=object_store_model`
-- `STAT_ARB_ML_MODEL_VERSION=<exact_model_version>`
-- `STAT_ARB_OBJECT_STORE_MODEL_KEY=stat-arb/models/<exact_model_version>/ensemble.joblib`
+- `STAT_ARB_ML_MODEL_VERSION=softvote_v2026_03_08`
+- `STAT_ARB_OBJECT_STORE_MODEL_KEY=28761844/stat-arb/models/softvote_v2026_03_08/ensemble.joblib`
 - `STAT_ARB_FEATURE_SCHEMA_VERSION=stat_arb_v1`
 - `STAT_ARB_ML_FALLBACK_MODE=embedded_scorecard`
 
