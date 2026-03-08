@@ -101,6 +101,14 @@ class SeriesValidationResult:
 ProviderFetcher = Callable[[str, int], ProviderPriceSeries]
 
 
+class ProviderExportError(ValueError):
+    """Raised when provider-backed training export cannot produce a safe dataset."""
+
+    def __init__(self, message: str, diagnostics: dict[str, Any]) -> None:
+        super().__init__(message)
+        self.diagnostics = diagnostics
+
+
 def _candidate_paths(root: Path, symbol: str) -> list[Path]:
     lowered = symbol.lower()
     paths: list[Path] = []
@@ -506,6 +514,47 @@ def _series_summary(series: ProviderPriceSeries, quality: SeriesQualityCheck) ->
     }
 
 
+def _build_provider_export_diagnostics(
+    *,
+    symbols_requested: list[str],
+    symbols_included: list[str],
+    excluded_symbols: dict[str, Any],
+    provider_policy: dict[str, Any],
+    common_days: int | None = None,
+) -> dict[str, Any]:
+    return {
+        "export_mode": "provider_validated",
+        "symbols_requested": symbols_requested,
+        "symbols_included": symbols_included,
+        "symbols_excluded": excluded_symbols,
+        "provider_policy": provider_policy,
+        "common_days": common_days,
+    }
+
+
+def _summarize_excluded_symbols(excluded_symbols: dict[str, Any], limit: int = 3) -> str:
+    fragments: list[str] = []
+    for symbol in sorted(excluded_symbols)[:limit]:
+        record = excluded_symbols[symbol]
+        reason = record.get("reason", "unknown")
+        if reason == "primary_fetch_failed":
+            fragments.append(f"{symbol}:primary_fetch_failed:{record.get('error', 'unknown')}")
+            continue
+        attempts = record.get("attempts", {})
+        primary_validation = attempts.get("primary_validation") or {}
+        repair_validation = attempts.get("repair_validation") or {}
+        validator_error = record.get("validator_error")
+        if primary_validation.get("issues"):
+            fragments.append(f"{symbol}:primary_validation:{','.join(primary_validation['issues'])}")
+        elif repair_validation.get("issues"):
+            fragments.append(f"{symbol}:repair_validation:{','.join(repair_validation['issues'])}")
+        elif validator_error:
+            fragments.append(f"{symbol}:validator:{validator_error}")
+        else:
+            fragments.append(f"{symbol}:{reason}")
+    return " | ".join(fragments)
+
+
 def export_provider_validated_price_history(
     symbols: list[str],
     *,
@@ -536,11 +585,23 @@ def export_provider_validated_price_history(
     if len(symbols) < 2:
         raise ValueError("At least two symbols are required to export stat-arb training history")
 
+    requested_symbols = [symbol.strip().upper() for symbol in symbols if symbol.strip()]
+    provider_policy = {
+        "primary": primary_provider,
+        "validator": validator_provider,
+        "repair": repair_provider,
+        "validation_window_days": validation_window_days,
+        "minimum_validator_overlap_days": minimum_validator_overlap_days,
+        "max_mean_abs_return_drift_bps": max_mean_abs_return_drift_bps,
+        "max_max_abs_return_drift_bps": max_max_abs_return_drift_bps,
+        "max_latest_close_drift_bps": max_latest_close_drift_bps,
+    }
+
     chosen_series: list[ProviderPriceSeries] = []
     symbol_provenance: dict[str, Any] = {}
     excluded_symbols: dict[str, Any] = {}
 
-    for raw_symbol in symbols:
+    for raw_symbol in requested_symbols:
         symbol = raw_symbol.strip().upper()
         if not symbol:
             continue
@@ -635,9 +696,17 @@ def export_provider_validated_price_history(
         }
 
     if len(chosen_series) < 2:
-        raise ValueError(
+        diagnostics = _build_provider_export_diagnostics(
+            symbols_requested=requested_symbols,
+            symbols_included=[item.symbol for item in chosen_series],
+            excluded_symbols=excluded_symbols,
+            provider_policy=provider_policy,
+        )
+        raise ProviderExportError(
             "Provider-backed export produced fewer than two validated symbols. "
             f"validated={len(chosen_series)} excluded={len(excluded_symbols)}"
+            + (f" | sample={_summarize_excluded_symbols(excluded_symbols)}" if excluded_symbols else ""),
+            diagnostics=diagnostics,
         )
 
     common_dates = set(chosen_series[0].closes_by_date)
@@ -645,9 +714,17 @@ def export_provider_validated_price_history(
         common_dates &= set(item.closes_by_date)
     aligned_dates = sorted(common_dates)
     if len(aligned_dates) < minimum_common_days:
-        raise ValueError(
+        diagnostics = _build_provider_export_diagnostics(
+            symbols_requested=requested_symbols,
+            symbols_included=[item.symbol for item in chosen_series],
+            excluded_symbols=excluded_symbols,
+            provider_policy=provider_policy,
+            common_days=len(aligned_dates),
+        )
+        raise ProviderExportError(
             f"Only {len(aligned_dates)} common validated daily bars were found across the requested universe; "
-            f"at least {minimum_common_days} are required"
+            f"at least {minimum_common_days} are required",
+            diagnostics=diagnostics,
         )
 
     return {
@@ -658,17 +735,8 @@ def export_provider_validated_price_history(
         },
         "metadata": {
             "export_mode": "provider_validated",
-            "provider_policy": {
-                "primary": primary_provider,
-                "validator": validator_provider,
-                "repair": repair_provider,
-                "validation_window_days": validation_window_days,
-                "minimum_validator_overlap_days": minimum_validator_overlap_days,
-                "max_mean_abs_return_drift_bps": max_mean_abs_return_drift_bps,
-                "max_max_abs_return_drift_bps": max_max_abs_return_drift_bps,
-                "max_latest_close_drift_bps": max_latest_close_drift_bps,
-            },
-            "symbols_requested": [symbol.strip().upper() for symbol in symbols if symbol.strip()],
+            "provider_policy": provider_policy,
+            "symbols_requested": requested_symbols,
             "symbols_included": [item.symbol for item in chosen_series],
             "symbols_excluded": excluded_symbols,
             "common_days": len(aligned_dates),

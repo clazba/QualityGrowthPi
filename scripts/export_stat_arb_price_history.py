@@ -13,6 +13,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.stat_arb.data_export import (
+    ProviderExportError,
     export_aligned_price_history,
     export_provider_validated_price_history,
     write_price_history_json,
@@ -113,6 +114,10 @@ def _parse_args() -> argparse.Namespace:
         default=str(PROJECT_ROOT / "data" / "stat_arb_training" / "stat_arb_price_history.json"),
         help="Output JSON path for the trainer input file",
     )
+    parser.add_argument(
+        "--diagnostics-output",
+        help="Optional JSON path for exporter diagnostics when provider-backed validation fails",
+    )
     return parser.parse_args()
 
 
@@ -123,27 +128,46 @@ def main() -> None:
         symbols = [symbol.strip().upper() for symbol in args.symbols.split(",") if symbol.strip()]
     else:
         symbols = list(settings.universe.symbols)
-    if args.source_mode == "lean":
-        payload = export_aligned_price_history(
-            args.lean_data_root,
-            symbols,
-            minimum_common_days=args.minimum_common_days,
+    diagnostics_output = Path(args.diagnostics_output).expanduser().resolve() if args.diagnostics_output else (
+        Path(args.output).expanduser().resolve().with_name(Path(args.output).stem + "_diagnostics.json")
+    )
+    try:
+        if args.source_mode == "lean":
+            payload = export_aligned_price_history(
+                args.lean_data_root,
+                symbols,
+                minimum_common_days=args.minimum_common_days,
+            )
+        else:
+            payload = export_provider_validated_price_history(
+                symbols,
+                lookback_days=max(args.lookback_days, settings.universe.lookback_days),
+                minimum_history_days=max(args.minimum_history_days, settings.universe.min_history_days),
+                minimum_common_days=args.minimum_common_days,
+                primary_provider=args.primary_provider,
+                validator_provider=args.validator_provider,
+                repair_provider=args.repair_provider,
+                validation_window_days=args.validation_window_days,
+                minimum_validator_overlap_days=args.minimum_validator_overlap_days,
+                max_mean_abs_return_drift_bps=args.max_mean_abs_return_drift_bps,
+                max_max_abs_return_drift_bps=args.max_max_abs_return_drift_bps,
+                max_latest_close_drift_bps=args.max_latest_close_drift_bps,
+            )
+    except ProviderExportError as exc:
+        diagnostics_output.parent.mkdir(parents=True, exist_ok=True)
+        diagnostics_output.write_text(json.dumps(exc.diagnostics, indent=2, sort_keys=True), encoding="utf-8")
+        print(
+            json.dumps(
+                {
+                    "error": str(exc),
+                    "diagnostics_output": str(diagnostics_output),
+                },
+                indent=2,
+                sort_keys=True,
+            ),
+            file=sys.stderr,
         )
-    else:
-        payload = export_provider_validated_price_history(
-            symbols,
-            lookback_days=max(args.lookback_days, settings.universe.lookback_days),
-            minimum_history_days=max(args.minimum_history_days, settings.universe.min_history_days),
-            minimum_common_days=args.minimum_common_days,
-            primary_provider=args.primary_provider,
-            validator_provider=args.validator_provider,
-            repair_provider=args.repair_provider,
-            validation_window_days=args.validation_window_days,
-            minimum_validator_overlap_days=args.minimum_validator_overlap_days,
-            max_mean_abs_return_drift_bps=args.max_mean_abs_return_drift_bps,
-            max_max_abs_return_drift_bps=args.max_max_abs_return_drift_bps,
-            max_latest_close_drift_bps=args.max_latest_close_drift_bps,
-        )
+        raise SystemExit(1) from exc
     output_path = write_price_history_json(payload, args.output)
     print(
         json.dumps(

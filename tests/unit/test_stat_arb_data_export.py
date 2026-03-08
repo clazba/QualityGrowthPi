@@ -9,6 +9,7 @@ import pytest
 from src.stat_arb import data_export
 from src.stat_arb.data_export import (
     ProviderPriceSeries,
+    ProviderExportError,
     export_aligned_price_history,
     export_provider_validated_price_history,
     load_symbol_price_series,
@@ -230,7 +231,7 @@ def test_provider_export_excludes_symbol_without_validated_series(monkeypatch) -
     monkeypatch.setitem(data_export.PROVIDER_FETCHERS, "alpaca", fake_alpaca)
     monkeypatch.setitem(data_export.PROVIDER_FETCHERS, "alpha_vantage", fake_alpha)
 
-    with pytest.raises(ValueError, match="fewer than two validated symbols"):
+    with pytest.raises(ProviderExportError, match="fewer than two validated symbols") as exc_info:
         export_provider_validated_price_history(
             ["AAPL", "MSFT"],
             lookback_days=6,
@@ -239,3 +240,5 @@ def test_provider_export_excludes_symbol_without_validated_series(monkeypatch) -
             validation_window_days=5,
             minimum_validator_overlap_days=4,
         )
+    assert "sample=" in str(exc_info.value)
+    assert exc_info.value.diagnostics["symbols_excluded"]["AAPL"]["reason"] == "primary_fetch_failed"
