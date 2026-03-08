@@ -41,6 +41,7 @@ For an operator-focused setup and usage guide, see [docs/quickstart.md](/Volumes
 ## Execution Paths
 
 - Backtest: `make backtest` (`QuantConnect cloud` is the default and validated path)
+- Stat-arb price-history export: `python scripts/export_stat_arb_price_history.py --lean-data-root <dir> --output <file>` (reads LEAN-style daily equity data and writes the aligned JSON consumed by the trainer)
 - Stat-arb model upload: `make upload-stat-arb-model` (validates a versioned sklearn/joblib artifact locally, then uploads it to QuantConnect Object Store)
 - Stat-arb model training: `python scripts/train_stat_arb_softvote.py --price-history-json <file> --artifact-output <file>` (builds supervised pair samples, runs walk-forward grid search across the five-model soft-voting ensemble, and writes the joblib artifact contract expected by the cloud loader)
 - Operator workflow: `make workflow` (builds the deterministic opportunity report, loads recent news, runs LLM advisory review for current paper candidates, and writes a markdown report under `results/opportunities/`)

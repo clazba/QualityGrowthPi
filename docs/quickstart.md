@@ -34,6 +34,7 @@ make test
 make backtest
 make workflow
 make llm-report
+python scripts/export_stat_arb_price_history.py --lean-data-root <dir> --output <file>
 make upload-stat-arb-model
 python scripts/train_stat_arb_softvote.py --price-history-json <file> --artifact-output <file>
 make paper-check
@@ -55,6 +56,8 @@ What they mean:
   - builds the operator opportunity report and LLM advisory review
 - `make llm-report`
   - prints saved LLM advisories from SQLite
+- `python scripts/export_stat_arb_price_history.py --lean-data-root <dir> --output <file>`
+  - extracts aligned daily closes from LEAN-style local equity data for the stat-arb trainer
 - `make upload-stat-arb-model`
   - validates and uploads the pinned stat-arb sklearn/joblib artifact to QuantConnect Object Store
 - `python scripts/train_stat_arb_softvote.py --price-history-json <file> --artifact-output <file>`
@@ -144,6 +147,31 @@ What this does:
 - checks the pinned schema version and model version
 - uploads the exact artifact to QuantConnect Object Store
 - keeps the embedded scorecard as the required fallback if load or inference fails
+
+### 5. Build The Stat-Arb Training Input File
+
+Use this when your Ubuntu trainer has LEAN daily data mounted or copied locally.
+
+```bash
+python scripts/export_stat_arb_price_history.py \
+  --lean-data-root data/lean \
+  --output data/stat_arb_training/stat_arb_price_history.json
+```
+
+This expects LEAN-style daily equity files such as:
+
+```text
+data/lean/equity/usa/daily/aapl.zip
+data/lean/equity/usa/daily/msft.zip
+```
+
+Then train the model:
+
+```bash
+python scripts/train_stat_arb_softvote.py \
+  --price-history-json data/stat_arb_training/stat_arb_price_history.json \
+  --artifact-output data/models/stat_arb/ensemble.joblib
+```
 
 ## Common Use Cases
 
