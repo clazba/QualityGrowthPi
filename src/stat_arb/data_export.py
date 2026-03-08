@@ -6,11 +6,14 @@ import csv
 import io
 import json
 import math
+import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable
 from zipfile import ZipFile
+
+import requests
 
 from src.provider_adapters.alpaca_adapter import AlpacaMarketDataAdapter
 from src.provider_adapters.alpha_vantage_adapter import AlphaVantageAdapter
@@ -261,27 +264,46 @@ def _timestamp_to_trading_date(timestamp: float) -> str:
 
 def _fetch_massive_price_series(symbol: str, lookback_days: int) -> ProviderPriceSeries:
     adapter = MassiveAdapter()
-    end = datetime.now(UTC).date()
-    start = end.fromordinal(end.toordinal() - max(lookback_days * 3, lookback_days + 30))
-    next_target: str | None = adapter._build_aggregates_path(symbol, start.isoformat(), end.isoformat())
-    request_params: dict[str, Any] | None = {
-        "adjusted": "true",
-        "sort": "asc",
-        "limit": min(max(lookback_days * 4, 5000), 50000),
-    }
-    parsed_results: list[dict[str, float]] = []
-    seen_urls: set[str] = set()
+    # Massive appears to cap some accounts at 500 aggregate rows per request even
+    # when higher limits are requested. Fetch roughly one trading year at a time,
+    # then reassemble locally to reduce truncation before falling through.
+    chunk_calendar_days = 365
+    current_end = datetime.now(UTC).date()
+    earliest_start = current_end.fromordinal(current_end.toordinal() - max(lookback_days * 4, lookback_days + 365))
+    bars_by_date: dict[str, dict[str, float]] = {}
+    request_count = 0
+    chunk_count = 0
 
-    while next_target:
-        if next_target in seen_urls:
-            raise ProviderError("Massive aggregates pagination returned a repeated next_url")
-        seen_urls.add(next_target)
-        payload = adapter._request(next_target, params=request_params)
-        parsed_results.extend(adapter._parse_aggregate_payload(payload))
-        next_target = payload.get("next_url")
-        request_params = None
+    while current_end >= earliest_start and len(bars_by_date) < lookback_days:
+        chunk_count += 1
+        chunk_start = max(earliest_start, current_end.fromordinal(current_end.toordinal() - chunk_calendar_days))
+        next_target: str | None = adapter._build_aggregates_path(symbol, chunk_start.isoformat(), current_end.isoformat())
+        request_params: dict[str, Any] | None = {
+            "adjusted": "true",
+            "sort": "asc",
+            # Keep this at 500 because many lower-tier accounts appear capped there anyway.
+            "limit": 500,
+        }
+        seen_urls: set[str] = set()
 
-    parsed_results = parsed_results[-lookback_days:]
+        while next_target:
+            if next_target in seen_urls:
+                raise ProviderError("Massive aggregates pagination returned a repeated next_url")
+            seen_urls.add(next_target)
+            payload = _request_massive_payload_with_backoff(adapter, next_target, params=request_params)
+            request_count += 1
+            for item in adapter._parse_aggregate_payload(payload):
+                trading_date = _timestamp_to_trading_date(item["timestamp"])
+                bars_by_date[trading_date] = item
+            next_target = payload.get("next_url")
+            request_params = None
+
+        # Small pacing delay between chunk windows to reduce rate-limit bursts.
+        time.sleep(0.2)
+        current_end = chunk_start - timedelta(days=1)
+
+    ordered_dates = sorted(bars_by_date)
+    parsed_results = [bars_by_date[date] for date in ordered_dates][-lookback_days:]
     if len(parsed_results) < lookback_days:
         raise ProviderError(
             f"Insufficient Massive daily bars returned for {symbol}: required={lookback_days} received={len(parsed_results)}"
@@ -298,6 +320,9 @@ def _fetch_massive_price_series(symbol: str, lookback_days: int) -> ProviderPric
             "base_url": adapter.base_url,
             "path_template": adapter.aggregates_path_template,
             "requested_lookback_days": lookback_days,
+            "chunk_calendar_days": chunk_calendar_days,
+            "request_count": request_count,
+            "chunk_count": chunk_count,
         },
     )
 
@@ -373,6 +398,56 @@ PROVIDER_FETCHERS: dict[str, ProviderFetcher] = {
     "alpaca": _fetch_alpaca_price_series,
     "alpha_vantage": _fetch_alpha_vantage_price_series,
 }
+
+
+def _request_massive_payload_with_backoff(
+    adapter: MassiveAdapter,
+    path_or_url: str,
+    *,
+    params: dict[str, Any] | None = None,
+    max_retries: int = 5,
+    initial_delay_seconds: float = 1.0,
+) -> dict[str, Any]:
+    """Issue one Massive request with explicit 429 handling and bounded retries."""
+
+    if not adapter.api_key:
+        raise ProviderError("MASSIVE_API_KEY is not configured (POLYGON_API_KEY is also accepted for compatibility)")
+
+    url, payload = adapter._prepare_url_and_params(path_or_url, params=params)
+    delay_seconds = initial_delay_seconds
+    last_error: str | None = None
+
+    for attempt in range(max_retries + 1):
+        response = adapter.session.get(
+            url,
+            params=payload,
+            headers={"Authorization": f"Bearer {adapter.api_key}"},
+            timeout=adapter.timeout_seconds,
+        )
+        if response.status_code == 429:
+            last_error = f"Massive request rate-limited for {url}"
+            if attempt == max_retries:
+                raise ProviderError(
+                    f"Massive request failed after {max_retries + 1} attempts due to rate limiting: {url}"
+                )
+            retry_after_header = response.headers.get("Retry-After")
+            try:
+                retry_after_seconds = float(retry_after_header) if retry_after_header is not None else delay_seconds
+            except ValueError:
+                retry_after_seconds = delay_seconds
+            time.sleep(max(retry_after_seconds, 0.0))
+            delay_seconds = min(delay_seconds * 2.0, 30.0)
+            continue
+        try:
+            response.raise_for_status()
+        except requests.RequestException as exc:
+            raise ProviderError(f"Massive request failed: {exc}") from exc
+        try:
+            return response.json()
+        except ValueError as exc:  # pragma: no cover - defensive
+            raise ProviderError(f"Massive response was not valid JSON: {exc}") from exc
+
+    raise ProviderError(last_error or f"Massive request failed unexpectedly: {url}")
 
 
 def _safe_log_return(current: float, previous: float) -> float | None:
@@ -607,17 +682,17 @@ def export_provider_validated_price_history(
             continue
 
         attempts: dict[str, Any] = {}
+        primary: ProviderPriceSeries | None = None
+        primary_quality: SeriesQualityCheck | None = None
         try:
             primary = _fetch_series(primary_provider, symbol, lookback_days)
             primary_quality = run_series_quality_check(primary, minimum_history_days=minimum_history_days)
             attempts["primary"] = _series_summary(primary, primary_quality)
         except Exception as exc:
-            excluded_symbols[symbol] = {
-                "reason": "primary_fetch_failed",
+            attempts["primary"] = {
+                "provider": primary_provider,
                 "error": str(exc),
-                "providers": {"primary": primary_provider, "validator": validator_provider, "repair": repair_provider},
             }
-            continue
 
         validator_error: str | None = None
         validator: ProviderPriceSeries | None = None
@@ -629,7 +704,13 @@ def export_provider_validated_price_history(
             validator_error = str(exc)
 
         primary_validation: SeriesValidationResult | None = None
-        if validator is not None and attempts["primary"]["quality"]["passed"] and attempts["validator"]["quality"]["passed"]:
+        if (
+            primary is not None
+            and primary_quality is not None
+            and validator is not None
+            and primary_quality.passed
+            and attempts["validator"]["quality"]["passed"]
+        ):
             primary_validation = compare_series_against_validator(
                 primary,
                 validator,
@@ -643,7 +724,7 @@ def export_provider_validated_price_history(
         chosen: ProviderPriceSeries | None = None
         chosen_reason: str | None = None
 
-        if attempts["primary"]["quality"]["passed"] and primary_validation and primary_validation.passed:
+        if primary is not None and primary_quality is not None and primary_quality.passed and primary_validation and primary_validation.passed:
             chosen = primary
             chosen_reason = "primary_validated"
 

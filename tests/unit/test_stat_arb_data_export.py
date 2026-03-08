@@ -10,6 +10,7 @@ from src.stat_arb import data_export
 from src.stat_arb.data_export import (
     ProviderPriceSeries,
     ProviderExportError,
+    _fetch_massive_price_series,
     export_aligned_price_history,
     export_provider_validated_price_history,
     load_symbol_price_series,
@@ -44,6 +45,17 @@ def _provider_series(
         volumes_by_date={date: 1_000_000.0 for date in closes_by_date},
         metadata={"test_fixture": True},
     )
+
+
+def _provider_payload(start_timestamp: float, count: int, *, close_start: float) -> dict[str, object]:
+    results = []
+    timestamp = start_timestamp
+    close = close_start
+    for _ in range(count):
+        results.append({"timestamp": timestamp, "close": close, "volume": 1_000_000.0})
+        timestamp += 86_400.0
+        close += 1.0
+    return {"results": results}
 
 
 def test_load_symbol_price_series_reads_lean_zip_payload(tmp_path: Path) -> None:
@@ -158,6 +170,44 @@ def test_provider_export_prefers_primary_when_validation_passes(monkeypatch) -> 
     assert payload["price_history"]["AAPL"][-1] == 105.0
 
 
+def test_fetch_massive_price_series_chunks_and_reassembles(monkeypatch) -> None:
+    class FakeMassiveAdapter:
+        def __init__(self) -> None:
+            self.api_key = "fixture"
+            self.base_url = "https://fixture.massive"
+            self.aggregates_path_template = "/v2/aggs"
+            self.timeout_seconds = 10
+            self.session = object()
+
+        def _build_aggregates_path(self, symbol: str, start: str, end: str) -> str:
+            return f"/aggs/{symbol}/{start}/{end}"
+
+        @staticmethod
+        def _parse_aggregate_payload(payload: dict[str, object]) -> list[dict[str, float]]:
+            return list(payload["results"])  # type: ignore[arg-type]
+
+    responses = [
+        _provider_payload(1_700_000_000.0, 250, close_start=100.0),
+        _provider_payload(1_680_000_000.0, 250, close_start=350.0),
+        _provider_payload(1_660_000_000.0, 250, close_start=600.0),
+    ]
+
+    monkeypatch.setattr(data_export, "MassiveAdapter", FakeMassiveAdapter)
+    monkeypatch.setattr(data_export.time, "sleep", lambda _: None)
+
+    def fake_request(adapter, path_or_url, *, params=None, max_retries=5, initial_delay_seconds=1.0):  # type: ignore[no-untyped-def]
+        return responses.pop(0)
+
+    monkeypatch.setattr(data_export, "_request_massive_payload_with_backoff", fake_request)
+
+    series = _fetch_massive_price_series("AAPL", 600)
+
+    assert series.provider == "massive"
+    assert len(series.closes_by_date) == 600
+    assert series.metadata["request_count"] == 3
+    assert series.metadata["chunk_count"] == 3
+
+
 def test_provider_export_repairs_symbol_when_primary_fails_validation(monkeypatch) -> None:
     bad_primary_aapl = _provider_series("AAPL", [100, 101, 102, 103, 52, 53], provider="massive")
     validator_aapl = _provider_series("AAPL", [100, 101, 102, 103, 104, 105], provider="alpaca")
@@ -207,6 +257,48 @@ def test_provider_export_repairs_symbol_when_primary_fails_validation(monkeypatc
     assert payload["metadata"]["symbol_provenance"]["AAPL"]["chosen_provider"] == "alpha_vantage"
     assert payload["metadata"]["symbol_provenance"]["AAPL"]["chosen_reason"] == "repair_validated"
     assert payload["price_history"]["AAPL"][-1] == 105.0
+
+
+def test_provider_export_repairs_symbol_when_primary_fetch_fails(monkeypatch) -> None:
+    validator_aapl = _provider_series("AAPL", [100, 101, 102, 103, 104, 105], provider="alpaca")
+    repair_aapl = _provider_series("AAPL", [100, 101, 102, 103, 104, 105], provider="alpha_vantage")
+    primary_msft = _provider_series("MSFT", [200, 201, 202, 203, 204, 205], provider="massive")
+    validator_msft = _provider_series("MSFT", [200, 201, 202, 203, 204, 205], provider="alpaca")
+
+    def fake_massive(symbol: str, lookback_days: int) -> ProviderPriceSeries:
+        if symbol == "AAPL":
+            raise ProviderError("rate limited")
+        return primary_msft
+
+    def fake_alpaca(symbol: str, lookback_days: int) -> ProviderPriceSeries:
+        if symbol == "AAPL":
+            return validator_aapl
+        return validator_msft
+
+    def fake_alpha(symbol: str, lookback_days: int) -> ProviderPriceSeries:
+        if symbol == "AAPL":
+            return repair_aapl
+        return primary_msft
+
+    monkeypatch.setitem(data_export.PROVIDER_FETCHERS, "massive", fake_massive)
+    monkeypatch.setitem(data_export.PROVIDER_FETCHERS, "alpaca", fake_alpaca)
+    monkeypatch.setitem(data_export.PROVIDER_FETCHERS, "alpha_vantage", fake_alpha)
+
+    payload = export_provider_validated_price_history(
+        ["AAPL", "MSFT"],
+        lookback_days=6,
+        minimum_history_days=5,
+        minimum_common_days=5,
+        validation_window_days=5,
+        minimum_validator_overlap_days=4,
+        max_mean_abs_return_drift_bps=25.0,
+        max_max_abs_return_drift_bps=100.0,
+        max_latest_close_drift_bps=10.0,
+    )
+
+    assert payload["metadata"]["symbol_provenance"]["AAPL"]["chosen_provider"] == "alpha_vantage"
+    assert payload["metadata"]["symbol_provenance"]["AAPL"]["chosen_reason"] == "repair_validated"
+    assert payload["metadata"]["symbol_provenance"]["AAPL"]["attempts"]["primary"]["error"] == "rate limited"
 
 
 def test_provider_export_excludes_symbol_without_validated_series(monkeypatch) -> None:
