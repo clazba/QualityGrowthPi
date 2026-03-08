@@ -54,6 +54,8 @@ required = [
     "jsonschema",
     "numpy",
     "requests",
+    "joblib",
+    "sklearn",
 ]
 missing = [name for name in required if importlib.util.find_spec(name) is None]
 if missing:
@@ -94,8 +96,13 @@ fi
 export PYTHONPYCACHEPREFIX="$PROJECT_ROOT/.pycache"
 cd "$PROJECT_ROOT"
 find "$PROJECT_ROOT/src" "$PROJECT_ROOT/tests" "$PROJECT_ROOT/lean_workspace/QualityGrowthPi" \
+  "$PROJECT_ROOT/lean_workspace/GraphStatArb" \
   -type f -name '*.py' ! -name '._*' -print0 | xargs -0 "$PYTHON_BIN" -m py_compile
-"$PYTHON_BIN" -m pytest --collect-only -q "$PROJECT_ROOT/tests" "$PROJECT_ROOT/lean_workspace/QualityGrowthPi/tests" --ignore-glob='**/._*'
+"$PYTHON_BIN" -m pytest --collect-only -q \
+  "$PROJECT_ROOT/tests" \
+  "$PROJECT_ROOT/lean_workspace/QualityGrowthPi/tests" \
+  "$PROJECT_ROOT/lean_workspace/GraphStatArb/tests" \
+  --ignore-glob='**/._*'
 bash -n "$PROJECT_ROOT"/scripts/*.sh
 
 printf 'Verification completed successfully\n'

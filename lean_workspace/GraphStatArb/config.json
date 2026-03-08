@@ -1,0 +1,7 @@
+{
+  "project-name": "GraphStatArb",
+  "algorithm-language": "Python",
+  "notes": [
+    "Generated for local inspection. scripts/sync_lean_project.sh writes the authoritative cloud-safe config.py."
+  ]
+}

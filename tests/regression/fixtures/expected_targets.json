@@ -2,8 +2,8 @@
   "rebalance_key": "QualityGrowthPi:2026-03",
   "selected_symbols": ["AAA", "BBB", "CCC"],
   "target_weights": {
-    "AAA": 0.3333333333333333,
-    "BBB": 0.3333333333333333,
-    "CCC": 0.3333333333333333
+    "AAA": 0.681709470635839,
+    "BBB": 0.30137168099112976,
+    "CCC": 0.01691884837303126
   }
 }

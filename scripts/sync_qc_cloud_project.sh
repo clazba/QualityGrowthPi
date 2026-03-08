@@ -3,7 +3,6 @@ set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="$PROJECT_ROOT/.env"
-PROJECT_DIR="$PROJECT_ROOT/lean_workspace/QualityGrowthPi"
 
 if [[ -f "$ENV_FILE" ]]; then
   set -a
@@ -11,6 +10,14 @@ if [[ -f "$ENV_FILE" ]]; then
   source "$ENV_FILE"
   set +a
 fi
+
+STRATEGY_MODE="${QUANT_GPT_STRATEGY_MODE:-quality_growth}"
+DEFAULT_PROJECT="QualityGrowthPi"
+if [[ "$STRATEGY_MODE" == "stat_arb_graph_pairs" ]]; then
+  DEFAULT_PROJECT="GraphStatArb"
+fi
+LEAN_PROJECT_NAME="${LEAN_BACKTEST_PROJECT:-$DEFAULT_PROJECT}"
+PROJECT_DIR="$PROJECT_ROOT/lean_workspace/$LEAN_PROJECT_NAME"
 
 if [[ -x "$PROJECT_ROOT/.venv/bin/python" ]]; then
   PYTHON_BIN="$PROJECT_ROOT/.venv/bin/python"
@@ -39,7 +46,7 @@ from typing import Any, Dict, List
 import requests
 
 BASE_URL = "https://www.quantconnect.com/api/v2"
-LOCAL_FILES = ("main.py", "scoring.py", "config.py")
+OPTIONAL_FILES = ("scoring.py", "stat_arb.py", "config.py")
 
 project_dir = Path(sys.argv[1]).resolve()
 project_id_raw = os.getenv("LEAN_BACKTEST_PROJECT_ID", "").strip()
@@ -86,7 +93,9 @@ existing_files_payload = post(
 existing_names = {str(item["name"]) for item in existing_files_payload.get("files", [])}
 uploaded: List[Dict[str, object]] = []
 
-for filename in LOCAL_FILES:
+local_files = ["main.py"] + [name for name in OPTIONAL_FILES if (project_dir / name).exists()]
+
+for filename in local_files:
     local_path = project_dir / filename
     if not local_path.exists():
         raise SystemExit(f"Missing local LEAN project file: {local_path}")
@@ -132,7 +141,7 @@ print(
         {
             "code_source_id": code_source_id,
             "project_id": project_id,
-            "synced_files": list(LOCAL_FILES),
+            "synced_files": list(local_files),
             "uploaded": uploaded,
             "cloud_files": verified,
         },

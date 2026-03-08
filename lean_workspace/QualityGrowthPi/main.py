@@ -88,6 +88,18 @@ def _nested_attr(obj: Any, path: str, default: Any = None) -> Any:
     return default if current is None else current
 
 
+def _sector_code(item: Any) -> str | None:
+    """Extract Morningstar sector metadata from a LEAN fundamental row."""
+
+    raw = (
+        _nested_attr(item, "AssetClassification.MorningstarSectorCode")
+        or _nested_attr(item, "AssetClassification.MorningstarSectorCode.Value")
+    )
+    if raw is None:
+        return None
+    return str(raw)
+
+
 class QualityGrowthPiAlgorithm(QCAlgorithm):
     """LEAN wrapper around cloud-safe deterministic strategy helpers."""
 
@@ -105,19 +117,27 @@ class QualityGrowthPiAlgorithm(QCAlgorithm):
         self.timing_features = {}  # type: Dict[str, TimingFeatures]
         self.last_rebalance_key = None  # type: Optional[str]
 
+        start_date = datetime.strptime(str(self.runtime.get("backtest_start_date", "2018-01-01")), "%Y-%m-%d")
         if hasattr(self, "SetStartDate"):
-            self.SetStartDate(2018, 1, 1)
+            self.SetStartDate(start_date.year, start_date.month, start_date.day)
         if hasattr(self, "SetCash"):
-            self.SetCash(100000)
+            self.SetCash(float(self.runtime.get("initial_cash", 100_000.0)))
 
         if hasattr(self, "UniverseSettings"):
             self.UniverseSettings.Resolution = DAILY_RESOLUTION
 
-        self.anchor_symbol = self.strategy["rebalance"]["anchor_symbol"]
+        anchor_ticker = self.strategy["rebalance"]["anchor_symbol"]
+        benchmark_ticker = self.strategy.get("benchmark_symbol", anchor_ticker)
+        self.anchor_symbol = anchor_ticker
+        self.benchmark_symbol = benchmark_ticker
         if hasattr(self, "AddEquity"):
-            self.anchor_symbol = self.AddEquity(self.strategy["rebalance"]["anchor_symbol"], DAILY_RESOLUTION).Symbol
+            self.anchor_symbol = self.AddEquity(anchor_ticker, DAILY_RESOLUTION).Symbol
+            if benchmark_ticker == anchor_ticker:
+                self.benchmark_symbol = self.anchor_symbol
+            else:
+                self.benchmark_symbol = self.AddEquity(benchmark_ticker, DAILY_RESOLUTION).Symbol
         if hasattr(self, "SetBenchmark"):
-            self.SetBenchmark(self.anchor_symbol)
+            self.SetBenchmark(self.benchmark_symbol)
 
         if hasattr(self, "AddUniverse"):
             self.AddUniverse(self.FundamentalSelectionFunction)
@@ -134,6 +154,7 @@ class QualityGrowthPiAlgorithm(QCAlgorithm):
             {
                 "algorithm": self.strategy["algorithm_name"],
                 "anchor_symbol": str(self.anchor_symbol),
+                "benchmark_symbol": str(self.benchmark_symbol),
                 "max_holdings": int(self.strategy["rebalance"]["max_holdings"]),
                 "llm_mode": "observe_only",
             },
@@ -178,7 +199,8 @@ class QualityGrowthPiAlgorithm(QCAlgorithm):
                 dollar_volume = price * volume
             filtered.append((item, dollar_volume))
         filtered.sort(key=lambda row: row[1], reverse=True)
-        return [item for item, _ in filtered[:1000]]
+        fine_universe_limit = max(1, int(self.runtime.get("fine_universe_limit", 1000)))
+        return [item for item, _ in filtered[:fine_universe_limit]]
 
     def _rank_and_select(self, fundamentals) -> List[Any]:
         """Rank shortlisted fundamentals and return LEAN symbols."""
@@ -195,6 +217,7 @@ class QualityGrowthPiAlgorithm(QCAlgorithm):
                     exchange_id=str(_nested_attr(item, "CompanyReference.PrimaryExchangeID", "")),
                     price=_safe_number(getattr(item, "Price", None), 0.0) or 0.0,
                     volume=_safe_number(getattr(item, "Volume", None), 0.0) or 0.0,
+                    sector_code=_sector_code(item),
                     roe=_safe_number(_nested_attr(item, "OperationRatios.ROE.Value")),
                     gross_margin=_safe_number(_nested_attr(item, "OperationRatios.GrossMargin.Value")),
                     debt_to_equity=_safe_number(_nested_attr(item, "OperationRatios.TotalDebtEquityRatio.Value")),
@@ -335,7 +358,12 @@ class QualityGrowthPiAlgorithm(QCAlgorithm):
 
     def _rebalance_key(self) -> str:
         current_time = getattr(self, "Time", None) or datetime.now(UTC)
-        return f"{self.strategy['algorithm_name']}:{current_time.strftime('%Y-%m')}"
+        frequency = str(self.strategy["rebalance"].get("frequency", "daily")).strip().lower()
+        if frequency == "monthly":
+            cadence_key = current_time.strftime("%Y-%m")
+        else:
+            cadence_key = current_time.strftime("%Y-%m-%d")
+        return f"{self.strategy['algorithm_name']}:{cadence_key}"
 
     def _has_completed_rebalance(self, rebalance_key: str) -> bool:
         if self.last_rebalance_key == rebalance_key:
@@ -408,6 +436,7 @@ class QualityGrowthPiAlgorithm(QCAlgorithm):
             snapshots=self.current_fundamentals.values(),
             timing_map=self.timing_features,
             config=self.config,
+            already_filtered=True,
         )
         if not intent.target_weights:
             self._set_runtime_statistic("LastRebalanceCheckAt", self._runtime_stamp())
@@ -606,4 +635,5 @@ class QualityGrowthPiAlgorithm(QCAlgorithm):
                 and float(thresholds["peg_ratio_min"]) < snapshot.peg_ratio <= float(thresholds["peg_ratio_max"])
                 for snapshot in snapshots
             ),
+            "sector_code_count": sum(snapshot.sector_code is not None for snapshot in snapshots),
         }

@@ -71,8 +71,14 @@ def stale_data_detected(
 def build_startup_banner(settings: Settings) -> str:
     """Return a concise startup banner for operator logs."""
 
+    algorithm_name = (
+        settings.stat_arb.algorithm_name
+        if settings.runtime.strategy_mode.value == "stat_arb_graph_pairs"
+        else settings.strategy.algorithm_name
+    )
     return (
-        f"QualityGrowthPi | env={settings.runtime.environment} "
+        f"{algorithm_name} | env={settings.runtime.environment} "
+        f"| strategy={settings.runtime.strategy_mode.value} "
         f"| provider={settings.runtime.provider_mode.value} "
         f"| backtest={settings.backtest.mode.value} "
         f"| paper_broker={settings.paper_trading.broker.value} "

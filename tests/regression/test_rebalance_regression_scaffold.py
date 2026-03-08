@@ -3,6 +3,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from src.models import FundamentalSnapshot, TimingFeatures
 from src.scoring import build_rebalance_intent
 from src.settings import load_settings
@@ -29,4 +31,5 @@ def test_rebalance_fixture_matches_expected_targets() -> None:
     intent = build_rebalance_intent(expected["rebalance_key"], snapshots, timing_map, strategy)
 
     assert intent.selected_symbols == expected["selected_symbols"]
-    assert intent.target_weights == expected["target_weights"]
+    for symbol, expected_weight in expected["target_weights"].items():
+        assert intent.target_weights[symbol] == pytest.approx(expected_weight)

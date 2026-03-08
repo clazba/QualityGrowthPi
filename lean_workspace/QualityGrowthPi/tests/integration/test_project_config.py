@@ -15,6 +15,10 @@ def test_quality_growth_pi_config_exists() -> None:
     spec.loader.exec_module(module)
     payload = module.CONFIG
     assert payload["algorithm-name"] == "QualityGrowthPi"
-    assert payload["strategy-config"].endswith("config/strategy.yaml")
+    assert payload["strategy-config"].endswith("src/strategy_settings.py")
+    assert payload["settings-profile"] == "default"
     assert payload["strategy"]["rebalance"]["max_holdings"] == 20
+    assert payload["runtime"]["backtest_start_date"] == "2018-01-01"
+    assert payload["runtime"]["initial_cash"] == 100000.0
+    assert payload["runtime"]["fine_universe_limit"] == 1000
     assert payload["runtime"]["bootstrap_history_days"] >= 30

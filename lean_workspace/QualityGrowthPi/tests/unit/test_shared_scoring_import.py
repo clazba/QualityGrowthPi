@@ -183,3 +183,187 @@ def test_daily_bar_stale_check_allows_long_weekend_gap() -> None:
     now = scoring.datetime(2026, 5, 26, 9, 30, tzinfo=scoring.UTC)
     last_updated = scoring.datetime(2026, 5, 22, 16, 0, tzinfo=scoring.UTC)
     assert scoring.stale_data_detected(last_updated, max_age_minutes=30, now=now) is False
+
+
+def test_cloud_scoring_uses_sector_relative_thresholds() -> None:
+    scoring = _load_module("qgpi_scoring_sector_relative", "scoring.py")
+    config = scoring.load_strategy_config(PROJECT_DIR / "config.py")
+    config["strategy"]["thresholds"]["roe_min"] = 0.30
+    config["strategy"]["thresholds"]["revenue_growth_min"] = 0.30
+    config["strategy"]["thresholds"]["net_income_growth_min"] = 0.30
+    config["strategy"]["thresholds"]["sector_percentile_min"] = 0.5
+    now = scoring.datetime.now(scoring.UTC)
+
+    ranked = scoring.rank_fundamental_candidates(
+        [
+            scoring.FundamentalSnapshot(
+                symbol="AAA",
+                as_of=now,
+                has_fundamental_data=True,
+                market_cap=2_000_000_000,
+                exchange_id="NYS",
+                price=25,
+                volume=100_000,
+                sector_code="10",
+                roe=0.14,
+                gross_margin=0.45,
+                debt_to_equity=0.5,
+                revenue_growth=0.16,
+                net_income_growth=0.12,
+                pe_ratio=20,
+                peg_ratio=0.8,
+            ),
+            scoring.FundamentalSnapshot(
+                symbol="AAB",
+                as_of=now,
+                has_fundamental_data=True,
+                market_cap=2_000_000_000,
+                exchange_id="NYS",
+                price=25,
+                volume=100_000,
+                sector_code="10",
+                roe=0.10,
+                gross_margin=0.45,
+                debt_to_equity=0.5,
+                revenue_growth=0.11,
+                net_income_growth=0.08,
+                pe_ratio=20,
+                peg_ratio=1.1,
+            ),
+        ],
+        config,
+    )
+
+    assert [candidate.symbol for candidate in ranked] == ["AAA"]
+
+
+def test_cloud_scoring_allocates_by_combined_score() -> None:
+    scoring = _load_module("qgpi_scoring_weighted_targets", "scoring.py")
+    config = scoring.load_strategy_config(PROJECT_DIR / "config.py")
+    config["strategy"]["rebalance"]["max_holdings"] = 3
+    config["strategy"]["rebalance"]["candidate_pool_multiplier"] = 2
+    now = scoring.datetime.now(scoring.UTC)
+
+    intent = scoring.build_rebalance_intent(
+        "QualityGrowthPi:2026-03-09",
+        [
+            scoring.FundamentalSnapshot(
+                symbol="AAA",
+                as_of=now,
+                has_fundamental_data=True,
+                market_cap=2_000_000_000,
+                exchange_id="NYS",
+                price=25,
+                volume=100_000,
+                sector_code="10",
+                roe=0.30,
+                gross_margin=0.45,
+                debt_to_equity=0.5,
+                revenue_growth=0.25,
+                net_income_growth=0.20,
+                pe_ratio=20,
+                peg_ratio=0.8,
+            ),
+            scoring.FundamentalSnapshot(
+                symbol="BBB",
+                as_of=now,
+                has_fundamental_data=True,
+                market_cap=2_000_000_000,
+                exchange_id="NYS",
+                price=25,
+                volume=100_000,
+                sector_code="20",
+                roe=0.28,
+                gross_margin=0.45,
+                debt_to_equity=0.5,
+                revenue_growth=0.24,
+                net_income_growth=0.19,
+                pe_ratio=20,
+                peg_ratio=0.9,
+            ),
+            scoring.FundamentalSnapshot(
+                symbol="CCC",
+                as_of=now,
+                has_fundamental_data=True,
+                market_cap=2_000_000_000,
+                exchange_id="NYS",
+                price=25,
+                volume=100_000,
+                sector_code="30",
+                roe=0.26,
+                gross_margin=0.45,
+                debt_to_equity=0.5,
+                revenue_growth=0.23,
+                net_income_growth=0.18,
+                pe_ratio=20,
+                peg_ratio=1.0,
+            ),
+            scoring.FundamentalSnapshot(
+                symbol="DDD",
+                as_of=now,
+                has_fundamental_data=True,
+                market_cap=2_000_000_000,
+                exchange_id="NYS",
+                price=25,
+                volume=100_000,
+                sector_code="40",
+                roe=0.24,
+                gross_margin=0.45,
+                debt_to_equity=0.5,
+                revenue_growth=0.22,
+                net_income_growth=0.17,
+                pe_ratio=20,
+                peg_ratio=1.1,
+            ),
+        ],
+        {
+            "AAA": scoring.TimingFeatures(
+                symbol="AAA",
+                relative_volume=0.0,
+                volatility_ratio=1.0,
+                short_sma=0.0,
+                long_sma=0.0,
+                trend_up=False,
+                volatility_contraction=False,
+                timing_score=0.7,
+                last_updated=now,
+            ),
+            "BBB": scoring.TimingFeatures(
+                symbol="BBB",
+                relative_volume=0.0,
+                volatility_ratio=1.0,
+                short_sma=0.0,
+                long_sma=0.0,
+                trend_up=False,
+                volatility_contraction=False,
+                timing_score=0.4,
+                last_updated=now,
+            ),
+            "CCC": scoring.TimingFeatures(
+                symbol="CCC",
+                relative_volume=0.0,
+                volatility_ratio=1.0,
+                short_sma=0.0,
+                long_sma=0.0,
+                trend_up=False,
+                volatility_contraction=False,
+                timing_score=0.3,
+                last_updated=now,
+            ),
+            "DDD": scoring.TimingFeatures(
+                symbol="DDD",
+                relative_volume=0.0,
+                volatility_ratio=1.0,
+                short_sma=0.0,
+                long_sma=0.0,
+                trend_up=False,
+                volatility_contraction=False,
+                timing_score=0.2,
+                last_updated=now,
+            ),
+        },
+        config,
+    )
+
+    assert intent.selected_symbols == ["AAA", "BBB", "CCC"]
+    assert intent.target_weights["AAA"] > intent.target_weights["BBB"] > intent.target_weights["CCC"]

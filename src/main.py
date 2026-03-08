@@ -17,7 +17,7 @@ from src.state_store import StateStore
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="QualityGrowthPi control plane")
+    parser = argparse.ArgumentParser(description="Quant trading control plane")
     subparsers = parser.add_subparsers(dest="command", required=False)
     subparsers.add_parser("health", help="Initialize logging and emit a heartbeat")
     subparsers.add_parser("init-db", help="Initialize the SQLite state store")

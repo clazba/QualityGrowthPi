@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
+from datetime import UTC, datetime
 
 from src.logging_utils import get_logger
 from src.models import (
@@ -53,6 +55,40 @@ class AdvisoryEngine:
 
     def _hash_response(self, payload: dict) -> str:
         return hashlib.sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()
+
+    def _confidence_decay_factor(
+        self,
+        events: list[NewsEvent],
+        evaluated_at: datetime,
+    ) -> float:
+        """Average per-event exponential half-life decay for a news bundle."""
+
+        if not events:
+            return 1.0
+
+        decay_factors: list[float] = []
+        half_life_hours = float(self.policy.confidence_half_life_hours)
+        for event in events:
+            published_at = event.published_at
+            if published_at.tzinfo is None:
+                published_at = published_at.replace(tzinfo=UTC)
+            elapsed_seconds = max(0.0, (evaluated_at - published_at).total_seconds())
+            elapsed_hours = elapsed_seconds / 3600.0
+            decay_factors.append(math.pow(0.5, elapsed_hours / half_life_hours))
+
+        return sum(decay_factors) / len(decay_factors)
+
+    def _apply_confidence_decay(
+        self,
+        advisory: LLMAdvisoryOutput,
+        events: list[NewsEvent],
+        evaluated_at: datetime,
+    ) -> tuple[LLMAdvisoryOutput, float]:
+        """Return an advisory copy with decayed confidence."""
+
+        decay_factor = self._confidence_decay_factor(events, evaluated_at)
+        effective_confidence = round(advisory.confidence_score * decay_factor, 6)
+        return advisory.model_copy(update={"confidence_score": effective_confidence}), decay_factor
 
     def evaluate(
         self,
@@ -138,12 +174,17 @@ class AdvisoryEngine:
         if advisory is None:
             return None
 
+        evaluated_at = datetime.now(UTC)
+        effective_advisory, decay_factor = self._apply_confidence_decay(advisory, events, evaluated_at)
+
         decision = apply_advisory_policy(
             base_weight=context.target_weight,
-            advisory=advisory,
+            advisory=effective_advisory,
             mode=self.llm_mode,
             policy=self.policy,
         )
-        envelope = AdvisoryEnvelope(advisory=advisory, decision=decision)
+        decision.effective_confidence_score = effective_advisory.confidence_score
+        decision.decay_factor = round(decay_factor, 6)
+        envelope = AdvisoryEnvelope(advisory=effective_advisory, decision=decision, as_of=evaluated_at)
         self.feature_store.save_advisory(envelope, policy_mode=self.llm_mode.value)
         return envelope

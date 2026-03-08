@@ -23,6 +23,7 @@ from src.settings import Settings
 class ResolvedProviderPlan:
     """Concrete provider plan resolved from settings and environment."""
 
+    strategy_mode: str
     backtest_mode: str
     backtest_project: str
     paper_deployment_target: str
@@ -42,6 +43,7 @@ def resolve_provider_plan(settings: Settings) -> ResolvedProviderPlan:
     """Return the active deployment/provider plan."""
 
     return ResolvedProviderPlan(
+        strategy_mode=settings.runtime.strategy_mode.value,
         backtest_mode=settings.backtest.mode.value,
         backtest_project=settings.backtest.project_name,
         paper_deployment_target=settings.paper_trading.deployment_target.value,

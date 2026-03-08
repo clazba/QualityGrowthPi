@@ -11,13 +11,14 @@ from typing import Any
 
 import requests
 
-from src.models import DeterministicDecisionContext
+from src.models import DeterministicDecisionContext, PairPositionState
 from src.provider_adapters.alpha_vantage_adapter import AlphaVantageNewsProvider
 from src.provider_adapters.base import ProviderError
 from src.provider_adapters.composite import CompositeNewsProvider
-from src.provider_adapters.factory import build_news_provider
+from src.provider_adapters.factory import build_market_data_provider, build_news_provider
 from src.provider_adapters.gemini_api_adapter import GeminiAPIAdapter
 from src.provider_adapters.news_base import FileNewsProvider, MassiveNewsProvider
+from src.stat_arb import collect_price_history, run_stat_arb_cycle
 from src.sentiment import AdvisoryEngine
 from src.sentiment.cache import LLMResponseCache
 from src.sentiment.feature_store import SentimentFeatureStore
@@ -111,6 +112,48 @@ def build_candidate_contexts(
                 notes=notes,
             )
         )
+    return contexts
+
+
+def build_pair_trade_contexts(stat_arb_summary: dict[str, Any]) -> list[DeterministicDecisionContext]:
+    """Convert accepted stat-arb intents into symbol-level advisory contexts."""
+
+    contexts: list[DeterministicDecisionContext] = []
+    seen_symbols: set[str] = set()
+    for intent in stat_arb_summary.get("accepted_intents", []):
+        for symbol, weight, notes in (
+            (
+                intent["long_symbol"],
+                abs(float(intent["long_weight"])),
+                [
+                    "Stat-arb pair long leg.",
+                    f"pair_id={intent['pair_id']}",
+                    f"expected_edge_bps={intent['expected_edge_bps']}",
+                ],
+            ),
+            (
+                intent["short_symbol"],
+                abs(float(intent["short_weight"])),
+                [
+                    "Stat-arb pair short leg.",
+                    f"pair_id={intent['pair_id']}",
+                    f"expected_edge_bps={intent['expected_edge_bps']}",
+                ],
+            ),
+        ):
+            if symbol in seen_symbols:
+                continue
+            seen_symbols.add(symbol)
+            contexts.append(
+                DeterministicDecisionContext(
+                    symbol=symbol,
+                    fundamental_score=0.0,
+                    timing_score=0.0,
+                    combined_score=0.0,
+                    target_weight=round(weight, 6),
+                    notes=notes,
+                )
+            )
     return contexts
 
 
@@ -242,6 +285,72 @@ def run_operator_advisories(
     return result
 
 
+def run_stat_arb_operator_cycle(
+    settings: Settings,
+    store: StateStore,
+    portfolio_equity: float,
+) -> dict[str, Any]:
+    """Run the stat-arb research cycle, persist artifacts, and return a compact report."""
+
+    provider = build_market_data_provider(settings)
+    price_history, skipped_symbols = collect_price_history(provider, settings.stat_arb)
+    if len(price_history) < 2:
+        return {
+            "status": "insufficient_market_data",
+            "skipped_symbols": skipped_symbols,
+            "clusters": [],
+            "accepted_intents": [],
+            "rejected_pairs": [],
+            "exit_signals": [],
+            "open_positions": store.open_pair_positions(),
+        }
+
+    open_positions = [PairPositionState(**row["payload"]) for row in store.open_pair_positions()]
+    cycle = run_stat_arb_cycle(
+        settings.stat_arb,
+        price_history,
+        portfolio_equity=portfolio_equity,
+        open_positions=open_positions,
+    )
+    store.save_cluster_snapshots(cycle.clusters)
+    intents_by_pair = {intent.pair_id: intent for intent in cycle.intents}
+    for candidate in cycle.candidates:
+        decision = cycle.decisions.get(candidate.pair_id)
+        intent = intents_by_pair.get(candidate.pair_id)
+        store.save_pair_opportunity(
+            as_of=cycle.as_of,
+            candidate=candidate,
+            status="accepted" if intent is not None else "rejected",
+            decision=decision,
+            intent=intent,
+            metadata={"strategy_mode": settings.runtime.strategy_mode.value},
+        )
+
+    accepted_intents = [intent.model_dump(mode="json") for intent in cycle.intents]
+    rejected_pairs = [
+        {
+            "pair_id": candidate.pair_id,
+            "cluster_id": candidate.cluster_id,
+            "z_score": candidate.spread_features.z_score,
+            "expected_edge_bps": candidate.spread_features.expected_edge_bps,
+            "decision": cycle.decisions[candidate.pair_id].model_dump(mode="json"),
+        }
+        for candidate in cycle.candidates
+        if not cycle.decisions[candidate.pair_id].execute
+    ]
+    return {
+        "status": "ok",
+        "summary": cycle.summary(),
+        "ml_filter_status": dict(cycle.ml_filter_status),
+        "clusters": [snapshot.model_dump(mode="json") for snapshot in cycle.clusters],
+        "accepted_intents": accepted_intents,
+        "rejected_pairs": rejected_pairs,
+        "exit_signals": list(cycle.exits),
+        "open_positions": [state.model_dump(mode="json") for state in open_positions],
+        "skipped_symbols": skipped_symbols,
+    }
+
+
 def load_lean_strategy_config(config_path: Path) -> dict[str, Any]:
     """Load the cloud-safe LEAN config module."""
 
@@ -257,6 +366,7 @@ def build_workflow_report(
     paper_status_text: str,
     positions_payload: dict[str, Any],
     llm_summary: dict[str, Any],
+    stat_arb_summary: dict[str, Any] | None = None,
 ) -> str:
     """Render the operator-facing markdown report."""
 
@@ -269,6 +379,16 @@ def build_workflow_report(
     timing = strategy["timing"]
     rebalance = strategy["rebalance"]
     universe = strategy["universe"]
+
+    if stat_arb_summary is not None and "graph" in strategy:
+        return _build_stat_arb_workflow_report(
+            diagnostics=diagnostics,
+            config=config,
+            paper_status_text=paper_status_text,
+            positions_payload=positions_payload,
+            llm_summary=llm_summary,
+            stat_arb_summary=stat_arb_summary,
+        )
 
     target_count = int(runtime.get("LastSuccessfulTargetCount") or runtime.get("LastRebalanceTargetCount") or 0)
     ranked_count = int(runtime.get("LastUniverseRankedCount") or 0)
@@ -410,4 +530,216 @@ Interpretation:
 - Use the active Alpaca paper positions as the operational view of what the strategy currently wants to hold.
 - Use the LLM advisory review as a secondary narrative and risk lens, not as the primary selector.
 - If the target count collapses, advisories turn broadly negative, or paper positions drift materially from expectation, stop paper trading and investigate before acting further.
+"""
+
+
+def _build_stat_arb_workflow_report(
+    diagnostics: dict[str, Any],
+    config: dict[str, Any],
+    paper_status_text: str,
+    positions_payload: dict[str, Any],
+    llm_summary: dict[str, Any],
+    stat_arb_summary: dict[str, Any],
+) -> str:
+    """Render the operator report for the graph-clustered stat-arb strategy."""
+
+    summary = diagnostics["summary"]
+    runtime = summary.get("runtime_statistics", {})
+    statistics = summary.get("statistics", {})
+    strategy = config["strategy"]
+    universe = strategy["universe"]
+    graph = strategy["graph"]
+    spread = strategy["spread"]
+    exit_policy = strategy["exit_policy"]
+    sizing = strategy["sizing"]
+    ml_filter = strategy["ml_filter"]
+    ml_filter_status = stat_arb_summary.get("ml_filter_status", cycle_summary.get("ml_filter_status", {}))
+
+    cycle_summary = stat_arb_summary.get("summary", {})
+    clusters = stat_arb_summary.get("clusters", [])
+    accepted = stat_arb_summary.get("accepted_intents", [])
+    rejected = stat_arb_summary.get("rejected_pairs", [])
+    exits = stat_arb_summary.get("exit_signals", [])
+
+    positions_lines = []
+    if positions_payload.get("available"):
+        positions = list(positions_payload.get("positions", []))
+        positions.sort(key=lambda item: abs(float(item.get("market_value", 0) or 0)), reverse=True)
+        for item in positions[:10]:
+            positions_lines.append(
+                f"- `{item.get('symbol')}` qty={item.get('qty')} market_value={item.get('market_value')} side={item.get('side')}"
+            )
+    else:
+        positions_lines.append(f"- positions unavailable: {positions_payload.get('reason', 'unknown')}")
+
+    llm_lines = []
+    if not llm_summary.get("enabled", False):
+        llm_lines.append("- LLM subsystem is disabled.")
+    elif llm_summary.get("status") in {"no_candidates", "no_recent_news", "provider_unavailable", "no_advisories_saved"}:
+        llm_lines.append(f"- status detail: {llm_summary.get('status')}")
+    else:
+        llm_lines.append(f"- evaluated symbols: `{', '.join(llm_summary.get('evaluated_symbols', [])) or 'none'}`")
+        llm_lines.append(f"- recent news events: `{llm_summary.get('news_event_count', 0)}`")
+        for advisory in llm_summary.get("saved_advisories", [])[:10]:
+            llm_lines.append(
+                "- `{symbol}` action={action} sentiment={label} confidence={confidence:.2f} "
+                "coverage={coverage:.2f} manual_review={manual_review}".format(
+                    symbol=advisory["symbol"],
+                    action=advisory["suggested_action"],
+                    label=advisory["sentiment_label"],
+                    confidence=float(advisory["confidence_score"]),
+                    coverage=float(advisory["source_coverage_score"]),
+                    manual_review=str(advisory["manual_review_required"]).lower(),
+                )
+            )
+
+    cluster_lines = [
+        f"- `{cluster['cluster_id']}` symbols={', '.join(cluster['symbols'])} avg_corr={cluster['average_correlation']} edges={cluster['edge_count']}"
+        for cluster in clusters[:10]
+    ] or ["- no clusters met the current graph threshold"]
+
+    accepted_lines = [
+        f"- `{intent['pair_id']}` long=`{intent['long_symbol']}` short=`{intent['short_symbol']}` "
+        f"entry_z={intent['entry_z_score']} kelly={intent['kelly_fraction']} gross={intent['gross_exposure']} edge_bps={intent['expected_edge_bps']}"
+        for intent in accepted[:10]
+    ] or ["- no pair trades passed the ML filter"]
+
+    rejected_lines = [
+        f"- `{pair['pair_id']}` z={pair['z_score']} edge_bps={pair['expected_edge_bps']} "
+        f"prob={pair['decision']['predicted_win_probability']} confidence={pair['decision']['confidence_score']}"
+        for pair in rejected[:10]
+    ] or ["- no rejected pair signals were recorded"]
+
+    exit_lines = [
+        f"- `{signal['pair_id']}` reason={signal['reason']} current_z={signal['current_z_score']} "
+        f"take_profit_z={signal['take_profit_z_score']} stop_loss_z={signal['stop_loss_z_score']}"
+        for signal in exits[:10]
+    ] or ["- no open-pair exit signals were evaluated"]
+
+    if accepted:
+        opportunity_readout = (
+            "The stat-arb engine found actionable mean-reversion dislocations. "
+            "Graph clustering, spread scoring, and the ML filter all produced deployable pair trades."
+        )
+    elif rejected:
+        opportunity_readout = (
+            "The stat-arb engine found candidate pairs, but the ML filter rejected the current dislocations. "
+            "This usually reflects weak net edge after fees or unstable pair behavior."
+        )
+    else:
+        opportunity_readout = (
+            "The stat-arb engine did not find deployable pair trades in the current universe snapshot. "
+            "Cluster quality or spread divergence may be too weak under the current thresholds."
+        )
+
+    return f"""# Trade Workflow Report
+
+## 1. Stat-Arb Universe
+
+- symbols in configured universe: `{len(universe['symbols'])}`
+- lookback days: `{universe['lookback_days']}`
+- minimum history days: `{universe['min_history_days']}`
+- minimum price: `{universe['min_price']}`
+- skipped symbols this cycle: `{', '.join(stat_arb_summary.get('skipped_symbols', [])) or 'none'}`
+
+## 2. Graph Clusters
+
+- correlation lookback days: `{graph['correlation_lookback_days']}`
+- minimum correlation: `{graph['min_correlation']}`
+- minimum cluster size: `{graph['min_cluster_size']}`
+- maximum cluster size: `{graph['max_cluster_size']}`
+- cycle cluster count: `{cycle_summary.get('clusters', {}).get('cluster_count', 0)}`
+
+{chr(10).join(cluster_lines)}
+
+## 3. Pair Signals
+
+- entry z-score: `{spread['entry_z_score']}`
+- take-profit z-score: `{spread['take_profit_z_score']}`
+- stop-loss z-score: `{spread['stop_loss_z_score']}`
+- maximum half-life days: `{spread['max_half_life_days']}`
+- minimum expected edge bps: `{spread['min_expected_edge_bps']}`
+- candidate pairs this cycle: `{cycle_summary.get('candidate_count', 0)}`
+
+Accepted pair intents:
+
+{chr(10).join(accepted_lines)}
+
+Rejected pair signals:
+
+{chr(10).join(rejected_lines)}
+
+## 4. ML Filter And Kelly Sizing
+
+- configured mode: `{ml_filter_status.get('configured_mode', ml_filter.get('mode', 'embedded_scorecard'))}`
+- active mode: `{ml_filter_status.get('active_mode', ml_filter.get('mode', 'embedded_scorecard'))}`
+- pinned object-store key: `{ml_filter_status.get('configured_model_key', ml_filter.get('object_store_model_key', '')) or 'not_configured'}`
+- local model path: `{ml_filter_status.get('local_model_path', ml_filter.get('local_model_path', '')) or 'not_configured'}`
+- model version: `{ml_filter['model_version']}`
+- loaded model version: `{ml_filter_status.get('loaded_model_version', ml_filter['model_version'])}`
+- feature schema version: `{ml_filter_status.get('feature_schema_version', ml_filter.get('feature_schema_version', 'stat_arb_v1'))}`
+- fallback active: `{ml_filter_status.get('fallback_active', False)}`
+- load status: `{ml_filter_status.get('load_status', 'unknown')}`
+- probability threshold: `{ml_filter['probability_threshold']}`
+- minimum confidence: `{ml_filter['min_confidence']}`
+- max open pairs: `{sizing['max_open_pairs']}`
+- max gross exposure per trade: `{sizing['max_gross_exposure_per_trade']}`
+- max gross exposure total: `{sizing['max_gross_exposure_total']}`
+- max net exposure total: `{sizing['max_net_exposure_total']}`
+- accepted count: `{cycle_summary.get('accepted_count', 0)}`
+- rejected count: `{cycle_summary.get('rejected_count', 0)}`
+{f"- load error: `{ml_filter_status['last_error']}`" if ml_filter_status.get('last_error') else ""}
+
+## 5. Dynamic Exit Policy
+
+- initial take-profit z-score: `{exit_policy['initial_take_profit_z_score']}`
+- minimum take-profit z-score: `{exit_policy['minimum_take_profit_z_score']}`
+- initial stop-loss z-score: `{exit_policy['initial_stop_loss_z_score']}`
+- minimum stop-loss z-score: `{exit_policy['minimum_stop_loss_z_score']}`
+- decay half-life days: `{exit_policy['decay_half_life_days']}`
+- max holding days: `{exit_policy['max_holding_days']}`
+
+Current exit signals:
+
+{chr(10).join(exit_lines)}
+
+## 6. Cloud Backtest Validation
+
+- backtest id: `{summary['backtest_id']}`
+- backtest name: `{summary['name']}`
+- backtest url: `{summary['backtest_url']}`
+- status: `{summary['status']}`
+- return: `{runtime.get('Return', statistics.get('Net Profit', 'n/a'))}`
+- end equity: `{statistics.get('End Equity', runtime.get('Equity', 'n/a'))}`
+- total orders: `{summary.get('reported_total_orders', summary.get('order_count', 0))}`
+- closed trades: `{summary.get('closed_trade_count', 0)}`
+
+## 7. Alpaca Paper Validation
+
+Current deployment status:
+
+```text
+{paper_status_text}
+```
+
+Current paper positions:
+
+{chr(10).join(positions_lines)}
+
+## 8. LLM Advisory Review
+
+- mode: `{llm_summary.get('mode', 'unknown')}`
+- provider: `{llm_summary.get('provider', 'unknown')}`
+- status: `{llm_summary.get('status', 'unknown')}`
+{chr(10).join(llm_lines)}
+
+## 9. Operator Readout
+
+{opportunity_readout}
+
+Interpretation:
+- Use the cluster table to confirm the graph step is finding coherent groups rather than isolated names.
+- Use accepted pair intents as the strategy's current trade proposal, not the raw rejected list.
+- Use the ML filter and Kelly sections to understand why a pair was approved and how much capital it deserves.
+- Use the exit section to see whether active pairs are approaching take-profit, stop-loss, or time-based exits before taking operational action.
 """

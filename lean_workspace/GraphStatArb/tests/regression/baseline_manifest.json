@@ -1,0 +1,13 @@
+{
+  "captured_baselines": [],
+  "description": "Baseline artefact slots for future GraphStatArb QuantConnect comparison bundles.",
+  "expected_artifacts": [
+    "cluster_snapshots",
+    "pair_candidates",
+    "ml_filter_decisions",
+    "pair_trade_intents",
+    "pair_position_state",
+    "cloud_baseline_bundles"
+  ],
+  "latest_baseline_id": null
+}

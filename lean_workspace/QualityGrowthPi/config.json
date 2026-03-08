@@ -2,11 +2,15 @@
     "algorithm-name": "QualityGrowthPi",
     "project-root": "/mnt/nvme_data/shared/quant_gpt",
     "shared-module-root": "/mnt/nvme_data/shared/quant_gpt/src",
-    "strategy-config": "/mnt/nvme_data/shared/quant_gpt/config/strategy.yaml",
+    "strategy-config": "/mnt/nvme_data/shared/quant_gpt/src/strategy_settings.py",
     "app-config": "/mnt/nvme_data/shared/quant_gpt/config/app.yaml",
+    "settings-profile": "default",
     "runtime": {
+        "backtest_start_date": "2018-01-01",
+        "initial_cash": 100000.0,
         "bootstrap_history_days": 35,
         "stale_data_max_age_minutes": 30,
+        "fine_universe_limit": 1000,
         "cloud_audit_logging": true
     },
     "strategy": {
@@ -57,9 +61,9 @@
         }
     },
     "notes": [
-        "Set the project-root paths to the Pi NVMe mount before live deployment.",
+        "src/strategy_settings.py is the single source of truth for parameters that move backtest outputs.",
         "The LEAN cloud entrypoint is intentionally self-contained and does not rely on repo-level Python packages.",
-        "Use scripts/sync_lean_project.sh to copy top-level strategy/runtime values into this file before cloud push."
+        "Use scripts/sync_lean_project.sh after changing strategy settings or QUANT_GPT_SETTINGS_PROFILE."
     ],
     "local-id": 908507761
 }

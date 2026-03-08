@@ -1,8 +1,11 @@
+# Deprecated runtime mirror.
+# Active strategy parameters now live in src/strategy_settings.py so the shared
+# Python code and LEAN cloud project consume the same source of truth.
 strategy:
   algorithm_name: QualityGrowthPi
   benchmark_symbol: SPY
   rebalance:
-    frequency: monthly
+    frequency: daily
     anchor_symbol: SPY
     after_open_minutes: 30
     max_holdings: 20
@@ -22,6 +25,7 @@ strategy:
     pe_ratio_min: 0.0
     peg_ratio_min: 0.0
     peg_ratio_max: 2.0
+    sector_percentile_min: 0.70
   weights:
     roe: 0.3
     revenue_growth: 0.3

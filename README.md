@@ -41,6 +41,7 @@ For an operator-focused setup and usage guide, see [docs/quickstart.md](/Volumes
 ## Execution Paths
 
 - Backtest: `make backtest` (`QuantConnect cloud` is the default and validated path)
+- Stat-arb model upload: `make upload-stat-arb-model` (validates a versioned sklearn/joblib artifact locally, then uploads it to QuantConnect Object Store)
 - Operator workflow: `make workflow` (builds the deterministic opportunity report, loads recent news, runs LLM advisory review for current paper candidates, and writes a markdown report under `results/opportunities/`)
 - Paper trading: `make paper-check`, `./scripts/list_qc_nodes.sh`, `make live-paper`, `make paper-status`, `make paper-stop` (`Alpaca paper` via `QuantConnect cloud + Alpaca brokerage` is the default first stage)
 - LLM advisory history: `make llm-report`
@@ -67,6 +68,58 @@ make paper-check
 make live-paper
 make paper-status
 ```
+
+## Stat-Arb Model Inference
+
+The graph stat-arb strategy now supports two ML filter backends:
+
+- `embedded_scorecard`
+  - deterministic built-in fallback
+- `object_store_model`
+  - loads a pinned sklearn/joblib artifact from QuantConnect Object Store inside the cloud algorithm process
+
+Pinned environment variables for `object_store_model` mode:
+
+- `STAT_ARB_ML_FILTER_MODE=object_store_model`
+- `STAT_ARB_ML_MODEL_VERSION=<exact_model_version>`
+- `STAT_ARB_OBJECT_STORE_MODEL_KEY=<exact_versioned_key>`
+- `STAT_ARB_FEATURE_SCHEMA_VERSION=stat_arb_v1`
+- `STAT_ARB_ML_FALLBACK_MODE=embedded_scorecard`
+
+Recommended Object Store key shape:
+
+```text
+stat-arb/models/<model_version>/ensemble.joblib
+```
+
+Upload flow:
+
+```bash
+make upload-stat-arb-model
+```
+
+The upload command validates the artifact contract before it calls:
+
+- `lean cloud object-store set <key> <artifact_path>`
+
+Artifact contract requirements:
+
+- `schema_version`
+- `model_version`
+- `feature_names`
+- `pipeline` with `predict_proba`
+- optional `global_feature_importance`
+- optional `training_metadata`
+
+Pinned feature order:
+
+- `abs_z_score`
+- `correlation`
+- `correlation_stability`
+- `mean_reversion_speed`
+- `half_life_score`
+- `expected_edge_bps_norm`
+- `transaction_cost_penalty`
 
 ## Current Limits
 

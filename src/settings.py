@@ -19,7 +19,14 @@ from src.models import (
     PaperTradingConfig,
     PathConfig,
     RuntimeConfig,
+    StatArbSettings,
     StrategyParameters,
+)
+from src.strategy_settings import (
+    build_quality_growth_payload,
+    build_runtime_payload,
+    build_stat_arb_payload,
+    default_lean_project_name,
 )
 
 
@@ -82,6 +89,7 @@ class Settings:
     paper_trading: PaperTradingConfig
     local_data_stack: LocalDataStackConfig
     strategy: StrategyParameters
+    stat_arb: StatArbSettings
     llm: LLMSettingsModel
     state_db_path: Path
     lock_path: Path
@@ -112,22 +120,32 @@ def load_settings(project_root: Path | None = None) -> Settings:
         load_dotenv(env_path, override=False)
 
     app_payload = _expand_env(_load_yaml(root / "config" / "app.yaml"))
-    strategy_payload = _expand_env(_load_yaml(root / "config" / "strategy.yaml"))
     llm_payload = _expand_env(_load_yaml(root / "config" / "llm.yaml"))
-
+    runtime_payload = build_runtime_payload()
     runtime = RuntimeConfig(**app_payload["runtime"])
     paths = PathConfig(**app_payload["paths"])
-    execution = ExecutionConfig(**app_payload["execution"])
+    execution = ExecutionConfig(
+        **{
+            **app_payload["execution"],
+            **{
+                key: value
+                for key, value in runtime_payload.items()
+                if key != "cloud_audit_logging"
+            },
+        }
+    )
     backtest = BacktestConfig(**app_payload["backtest"])
     paper_trading = PaperTradingConfig(**app_payload["paper_trading"])
     local_data_stack = LocalDataStackConfig(**app_payload["local_data_stack"])
-    strategy = StrategyParameters(**strategy_payload["strategy"])
+    strategy = StrategyParameters(**build_quality_growth_payload())
+    stat_arb = StatArbSettings(**build_stat_arb_payload())
     llm = LLMSettingsModel(**llm_payload["llm"])
 
     runtime = RuntimeConfig(
         **{
             **runtime.model_dump(mode="python"),
             "environment": os.getenv("QUANT_GPT_ENV", runtime.environment),
+            "strategy_mode": os.getenv("QUANT_GPT_STRATEGY_MODE", runtime.strategy_mode.value),
             "provider_mode": os.getenv("QUANT_GPT_PROVIDER_MODE", runtime.provider_mode.value),
             "llm_enabled": _env_bool("QUANT_GPT_ENABLE_LLM", runtime.llm_enabled),
             "llm_mode": os.getenv("QUANT_GPT_LLM_MODE", runtime.llm_mode.value),
@@ -158,7 +176,10 @@ def load_settings(project_root: Path | None = None) -> Settings:
         **{
             **backtest.model_dump(mode="python"),
             "mode": os.getenv("BACKTEST_MODE", backtest.mode.value),
-            "project_name": os.getenv("LEAN_BACKTEST_PROJECT", backtest.project_name),
+            "project_name": os.getenv(
+                "LEAN_BACKTEST_PROJECT",
+                default_lean_project_name(runtime.strategy_mode.value),
+            ),
             "push_on_cloud": _env_bool("LEAN_CLOUD_PUSH_ON_BACKTEST", backtest.push_on_cloud),
             "open_results": _env_bool("LEAN_CLOUD_OPEN_RESULTS", backtest.open_results),
         }
@@ -223,6 +244,7 @@ def load_settings(project_root: Path | None = None) -> Settings:
         paper_trading=paper_trading,
         local_data_stack=local_data_stack,
         strategy=strategy,
+        stat_arb=stat_arb,
         llm=llm,
         state_db_path=state_db_path,
         lock_path=lock_path,

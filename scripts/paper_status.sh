@@ -16,7 +16,12 @@ if ! command -v lean >/dev/null 2>&1; then
   exit 1
 fi
 
-PROJECT_SELECTOR="${LEAN_BACKTEST_PROJECT_ID:-${LEAN_BACKTEST_PROJECT:-QualityGrowthPi}}"
+STRATEGY_MODE="${QUANT_GPT_STRATEGY_MODE:-quality_growth}"
+DEFAULT_PROJECT="QualityGrowthPi"
+if [[ "$STRATEGY_MODE" == "stat_arb_graph_pairs" ]]; then
+  DEFAULT_PROJECT="GraphStatArb"
+fi
+PROJECT_SELECTOR="${LEAN_BACKTEST_PROJECT_ID:-${LEAN_BACKTEST_PROJECT:-$DEFAULT_PROJECT}}"
 PAPER_DEPLOYMENT_TARGET="${PAPER_DEPLOYMENT_TARGET:-cloud}"
 
 cd "$PROJECT_ROOT/lean_workspace"

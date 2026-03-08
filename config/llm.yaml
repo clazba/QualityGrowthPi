@@ -21,3 +21,4 @@ llm:
     low_coverage_threshold: 0.4
     max_weight_reduction: 0.5
     require_manual_review_on_reduce_size: true
+    confidence_half_life_hours: 24.0

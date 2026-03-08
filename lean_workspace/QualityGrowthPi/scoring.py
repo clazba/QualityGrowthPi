@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
+from collections import defaultdict
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -13,6 +15,8 @@ import numpy as np
 
 
 UTC = timezone.utc
+Z_SCORE_CAP = 3.0
+SECTOR_RELATIVE_METRICS = ("roe", "revenue_growth", "net_income_growth")
 
 
 @dataclass(frozen=True)
@@ -26,13 +30,14 @@ class FundamentalSnapshot:
     exchange_id: str
     price: float
     volume: float
-    roe: Optional[float]
-    gross_margin: Optional[float]
-    debt_to_equity: Optional[float]
-    revenue_growth: Optional[float]
-    net_income_growth: Optional[float]
-    pe_ratio: Optional[float]
-    peg_ratio: Optional[float]
+    sector_code: Optional[str] = None
+    roe: Optional[float] = None
+    gross_margin: Optional[float] = None
+    debt_to_equity: Optional[float] = None
+    revenue_growth: Optional[float] = None
+    net_income_growth: Optional[float] = None
+    pe_ratio: Optional[float] = None
+    peg_ratio: Optional[float] = None
 
 
 @dataclass(frozen=True)
@@ -74,7 +79,7 @@ class RebalanceIntent:
 
 
 def load_strategy_config(config_path: Path) -> Dict[str, Any]:
-    """Load the cloud-safe strategy config from the project-local JSON file."""
+    """Load the cloud-safe strategy config from the project-local config file."""
 
     if config_path.suffix == ".py":
         namespace: Dict[str, Any] = {}
@@ -98,14 +103,19 @@ def tolerate_missing_net_income_growth(value: Optional[float]) -> bool:
 
 
 def _normalize_by_symbol(values: Dict[str, float]) -> Dict[str, float]:
+    """Normalize a cross-section with capped z-scores."""
+
     if not values:
         return {}
-    minimum = min(values.values())
-    maximum = max(values.values())
-    if minimum == maximum:
-        return {symbol: 1.0 for symbol in values}
-    spread = maximum - minimum
-    return {symbol: (value - minimum) / spread for symbol, value in values.items()}
+    mean = sum(values.values()) / len(values)
+    variance = sum((value - mean) ** 2 for value in values.values()) / len(values)
+    if variance <= 0:
+        return {symbol: 0.0 for symbol in values}
+    std_dev = math.sqrt(variance)
+    return {
+        symbol: max(-Z_SCORE_CAP, min(Z_SCORE_CAP, (value - mean) / std_dev))
+        for symbol, value in values.items()
+    }
 
 
 def _inverse_metric(value: Optional[float]) -> Optional[float]:
@@ -114,9 +124,7 @@ def _inverse_metric(value: Optional[float]) -> Optional[float]:
     return 1.0 / value
 
 
-def passes_fundamental_filter(snapshot: FundamentalSnapshot, config: Dict[str, Any]) -> bool:
-    """Return True when a symbol qualifies for ranking."""
-
+def _passes_base_fundamental_filter(snapshot: FundamentalSnapshot, config: Dict[str, Any]) -> bool:
     strategy = config["strategy"]
     thresholds = strategy["thresholds"]
     universe = strategy["universe"]
@@ -131,21 +139,14 @@ def passes_fundamental_filter(snapshot: FundamentalSnapshot, config: Dict[str, A
         return False
     if snapshot.volume <= 0:
         return False
-    if snapshot.roe is None or snapshot.roe < float(thresholds["roe_min"]):
-        return False
     if snapshot.gross_margin is None or snapshot.gross_margin < float(thresholds["gross_margin_min"]):
         return False
     if snapshot.debt_to_equity is None:
         return False
     if not float(thresholds["debt_to_equity_min"]) < snapshot.debt_to_equity <= float(thresholds["debt_to_equity_max"]):
         return False
-    if snapshot.revenue_growth is None or snapshot.revenue_growth < float(thresholds["revenue_growth_min"]):
-        return False
     if snapshot.net_income_growth is not None and snapshot.net_income_growth < 0:
         return False
-    if not tolerate_missing_net_income_growth(snapshot.net_income_growth):
-        if snapshot.net_income_growth < float(thresholds["net_income_growth_min"]):
-            return False
     if snapshot.pe_ratio is None or snapshot.pe_ratio <= float(thresholds["pe_ratio_min"]):
         return False
     if snapshot.peg_ratio is None:
@@ -155,13 +156,105 @@ def passes_fundamental_filter(snapshot: FundamentalSnapshot, config: Dict[str, A
     return True
 
 
+def _percentile_by_symbol(values: Dict[str, float]) -> Dict[str, float]:
+    if not values:
+        return {}
+    if len(values) == 1:
+        symbol = next(iter(values))
+        return {symbol: 1.0}
+
+    sorted_items = sorted(values.items(), key=lambda item: (item[1], item[0]))
+    indexes_by_value: Dict[float, List[int]] = defaultdict(list)
+    for index, (_, value) in enumerate(sorted_items):
+        indexes_by_value[value].append(index)
+
+    denominator = len(sorted_items) - 1
+    percentiles: Dict[str, float] = {}
+    for symbol, value in sorted_items:
+        positions = indexes_by_value[value]
+        average_index = (positions[0] + positions[-1]) / 2
+        percentiles[symbol] = average_index / denominator if denominator > 0 else 1.0
+    return percentiles
+
+
+def _build_sector_percentiles(
+    snapshots: Iterable[FundamentalSnapshot],
+    metric_names: Iterable[str] = SECTOR_RELATIVE_METRICS,
+) -> Dict[str, Dict[str, float]]:
+    sector_groups: Dict[str, Dict[str, Dict[str, float]]] = {
+        metric: defaultdict(dict) for metric in metric_names
+    }
+    for snapshot in snapshots:
+        if not snapshot.sector_code:
+            continue
+        for metric in metric_names:
+            value = getattr(snapshot, metric)
+            if value is None:
+                continue
+            sector_groups[metric][snapshot.sector_code][snapshot.symbol] = float(value)
+
+    percentiles: Dict[str, Dict[str, float]] = {metric: {} for metric in metric_names}
+    for metric, grouped_values in sector_groups.items():
+        for values_by_symbol in grouped_values.values():
+            percentiles[metric].update(_percentile_by_symbol(values_by_symbol))
+    return percentiles
+
+
+def passes_fundamental_filter(
+    snapshot: FundamentalSnapshot,
+    config: Dict[str, Any],
+    sector_percentiles: Optional[Dict[str, Dict[str, float]]] = None,
+) -> bool:
+    """Return True when a symbol qualifies for ranking."""
+
+    if not _passes_base_fundamental_filter(snapshot, config):
+        return False
+
+    thresholds = config["strategy"]["thresholds"]
+    if not sector_percentiles or not snapshot.sector_code:
+        if snapshot.roe is None or snapshot.roe < float(thresholds["roe_min"]):
+            return False
+        if snapshot.revenue_growth is None or snapshot.revenue_growth < float(thresholds["revenue_growth_min"]):
+            return False
+        if not tolerate_missing_net_income_growth(snapshot.net_income_growth):
+            if snapshot.net_income_growth < float(thresholds["net_income_growth_min"]):
+                return False
+        return True
+
+    percentile_floor = float(thresholds.get("sector_percentile_min", 0.7))
+    symbol = snapshot.symbol
+    if snapshot.roe is None or sector_percentiles.get("roe", {}).get(symbol, -1.0) < percentile_floor:
+        return False
+    if snapshot.revenue_growth is None or sector_percentiles.get("revenue_growth", {}).get(symbol, -1.0) < percentile_floor:
+        return False
+    if not tolerate_missing_net_income_growth(snapshot.net_income_growth):
+        if sector_percentiles.get("net_income_growth", {}).get(symbol, -1.0) < percentile_floor:
+            return False
+    return True
+
+
 def rank_fundamental_candidates(
     snapshots: Iterable[FundamentalSnapshot],
     config: Dict[str, Any],
+    *,
+    already_filtered: bool = False,
 ) -> List[RankedCandidate]:
-    """Rank the eligible universe using weighted normalized fundamental factors."""
+    """Rank the eligible universe using weighted capped z-score factors."""
 
-    eligible = [snapshot for snapshot in snapshots if passes_fundamental_filter(snapshot, config)]
+    base_eligible = [snapshot for snapshot in snapshots if _passes_base_fundamental_filter(snapshot, config)]
+    if not base_eligible:
+        return []
+
+    if already_filtered:
+        eligible = list(base_eligible)
+        sector_percentiles: Dict[str, Dict[str, float]] = {}
+    else:
+        sector_percentiles = _build_sector_percentiles(base_eligible)
+        eligible = [
+            snapshot
+            for snapshot in base_eligible
+            if passes_fundamental_filter(snapshot, config, sector_percentiles=sector_percentiles)
+        ]
     if not eligible:
         return []
 
@@ -193,12 +286,23 @@ def rank_fundamental_candidates(
 
     ranked = []  # type: List[RankedCandidate]
     for snapshot in eligible:
+        roe_percentile = sector_percentiles.get("roe", {}).get(snapshot.symbol)
+        revenue_percentile = sector_percentiles.get("revenue_growth", {}).get(snapshot.symbol)
+        income_percentile = sector_percentiles.get("net_income_growth", {}).get(snapshot.symbol)
         reasons = [
+            f"sector_code={snapshot.sector_code}",
             f"roe={snapshot.roe}",
             f"revenue_growth={snapshot.revenue_growth}",
             f"net_income_growth={snapshot.net_income_growth}",
             f"peg_ratio={snapshot.peg_ratio}",
         ]
+        if roe_percentile is not None:
+            reasons.append(f"sector_roe_percentile={round(roe_percentile, 4)}")
+        if revenue_percentile is not None:
+            reasons.append(f"sector_revenue_percentile={round(revenue_percentile, 4)}")
+        if income_percentile is not None:
+            reasons.append(f"sector_income_percentile={round(income_percentile, 4)}")
+
         score = (
             normalized_roe.get(snapshot.symbol, 0.0) * float(weights["roe"])
             + normalized_revenue_growth.get(snapshot.symbol, 0.0) * float(weights["revenue_growth"])
@@ -297,12 +401,33 @@ def build_timing_features(
     )
 
 
+def _allocation_weights(selected: List[RankedCandidate]) -> Dict[str, float]:
+    if not selected:
+        return {}
+    minimum_score = min(candidate.combined_score for candidate in selected)
+    offset = (-minimum_score + 1e-6) if minimum_score <= 0 else 0.0
+    bases = {candidate.symbol: candidate.combined_score + offset for candidate in selected}
+    total = sum(bases.values())
+    if total <= 0:
+        equal_weight = 1.0 / len(selected)
+        return {candidate.symbol: equal_weight for candidate in selected}
+
+    weights = {}  # type: Dict[str, float]
+    allocated = 0.0
+    for candidate in selected[:-1]:
+        weight = bases[candidate.symbol] / total
+        weights[candidate.symbol] = weight
+        allocated += weight
+    weights[selected[-1].symbol] = max(0.0, 1.0 - allocated)
+    return weights
+
+
 def combine_candidate_scores(
     ranked_candidates: Iterable[RankedCandidate],
     timing_map: Dict[str, TimingFeatures],
     config: Dict[str, Any],
 ) -> List[RankedCandidate]:
-    """Combine fundamental and timing scores, then assign equal weights to final selections."""
+    """Combine fundamental and timing scores, then assign conviction-weighted targets."""
 
     weights = config["strategy"]["weights"]
     rebalance = config["strategy"]["rebalance"]
@@ -328,18 +453,21 @@ def combine_candidate_scores(
 
     combined.sort(key=lambda candidate: (-candidate.combined_score, candidate.symbol))
     selected = combined[: int(rebalance["max_holdings"])]
+    allocation = _allocation_weights(selected)
     if selected:
-        weight = 1.0 / len(selected)
-        for index, candidate in enumerate(selected):
-            selected[index] = RankedCandidate(
-                symbol=candidate.symbol,
-                fundamental_score=candidate.fundamental_score,
-                timing_score=candidate.timing_score,
-                combined_score=candidate.combined_score,
-                target_weight=weight,
-                reasons=list(candidate.reasons),
+        updated_selected = []
+        for candidate in selected:
+            updated_selected.append(
+                RankedCandidate(
+                    symbol=candidate.symbol,
+                    fundamental_score=candidate.fundamental_score,
+                    timing_score=candidate.timing_score,
+                    combined_score=candidate.combined_score,
+                    target_weight=allocation.get(candidate.symbol, 0.0),
+                    reasons=list(candidate.reasons),
+                )
             )
-        combined = selected + combined[len(selected) :]
+        combined = updated_selected + combined[len(selected) :]
     return combined
 
 
@@ -348,14 +476,16 @@ def build_rebalance_intent(
     snapshots: Iterable[FundamentalSnapshot],
     timing_map: Dict[str, TimingFeatures],
     config: Dict[str, Any],
+    *,
+    already_filtered: bool = False,
 ) -> RebalanceIntent:
     """Build a deterministic rebalance intent from fundamentals and timing state."""
 
-    ranked = rank_fundamental_candidates(snapshots, config)
+    ranked = rank_fundamental_candidates(snapshots, config, already_filtered=already_filtered)
     combined = combine_candidate_scores(ranked, timing_map, config)
     max_holdings = int(config["strategy"]["rebalance"]["max_holdings"])
     selected = combined[:max_holdings]
-    targets = {candidate.symbol: candidate.target_weight for candidate in selected if candidate.target_weight > 0}
+    targets = {candidate.symbol: candidate.target_weight for candidate in selected}
     return RebalanceIntent(
         rebalance_key=rebalance_key,
         selected_symbols=[candidate.symbol for candidate in selected],
@@ -364,6 +494,8 @@ def build_rebalance_intent(
         metadata={
             "candidate_pool_size": len(combined),
             "max_holdings": max_holdings,
+            "allocation_mode": "combined_score_weighted",
+            "already_filtered": already_filtered,
         },
     )
 

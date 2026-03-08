@@ -14,7 +14,12 @@ fi
 BACKTEST_MODE="${BACKTEST_MODE:-cloud}"
 LEAN_CLOUD_PUSH_ON_BACKTEST="${LEAN_CLOUD_PUSH_ON_BACKTEST:-true}"
 LEAN_CLOUD_OPEN_RESULTS="${LEAN_CLOUD_OPEN_RESULTS:-false}"
-LEAN_BACKTEST_PROJECT="${LEAN_BACKTEST_PROJECT:-QualityGrowthPi}"
+STRATEGY_MODE="${QUANT_GPT_STRATEGY_MODE:-quality_growth}"
+DEFAULT_PROJECT="QualityGrowthPi"
+if [[ "$STRATEGY_MODE" == "stat_arb_graph_pairs" ]]; then
+  DEFAULT_PROJECT="GraphStatArb"
+fi
+LEAN_BACKTEST_PROJECT="${LEAN_BACKTEST_PROJECT:-$DEFAULT_PROJECT}"
 LEAN_BACKTEST_PROJECT_ID="${LEAN_BACKTEST_PROJECT_ID:-}"
 QC_CLOUD_FILE_SYNC="${QC_CLOUD_FILE_SYNC:-true}"
 PROJECT_SELECTOR="${LEAN_BACKTEST_PROJECT_ID:-$LEAN_BACKTEST_PROJECT}"
@@ -29,7 +34,11 @@ fi
 "$PROJECT_ROOT/scripts/sync_lean_config.sh"
 "$PROJECT_ROOT/scripts/sync_lean_project.sh"
 
-read -r -p "Run LEAN backtest for ${PROJECT_SELECTOR} in ${BACKTEST_MODE} mode? [y/N]: " reply
+if [[ "${QUANT_GPT_ASSUME_YES:-false}" == "true" ]]; then
+  reply="y"
+else
+  read -r -p "Run LEAN backtest for ${PROJECT_SELECTOR} in ${BACKTEST_MODE} mode? [y/N]: " reply
+fi
 if [[ ! "$reply" =~ ^[Yy]$ ]]; then
   printf 'Backtest aborted by operator.\n'
   exit 0

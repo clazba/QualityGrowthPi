@@ -77,6 +77,12 @@ done
 RUNTIME_ROOT="${QUANT_GPT_RUNTIME_ROOT:-$PROJECT_ROOT}"
 REPORT_ROOT="$RUNTIME_ROOT/results/opportunities"
 BACKTEST_ROOT="$RUNTIME_ROOT/results/backtests/cloud"
+STRATEGY_MODE="${QUANT_GPT_STRATEGY_MODE:-quality_growth}"
+if [[ "$STRATEGY_MODE" == "stat_arb_graph_pairs" ]]; then
+  LEAN_CONFIG_PATH="$PROJECT_ROOT/lean_workspace/GraphStatArb/config.py"
+else
+  LEAN_CONFIG_PATH="$PROJECT_ROOT/lean_workspace/QualityGrowthPi/config.py"
+fi
 mkdir -p "$REPORT_ROOT" "$BACKTEST_ROOT"
 
 if [[ "$RUN_BACKTEST" == "true" ]]; then
@@ -100,6 +106,7 @@ fi
 PAPER_STATUS_FILE="$REPORT_ROOT/paper_status_latest.txt"
 POSITIONS_FILE="$REPORT_ROOT/paper_positions_latest.json"
 LLM_SUMMARY_FILE="$REPORT_ROOT/llm_workflow_latest.json"
+STAT_ARB_SUMMARY_FILE="$REPORT_ROOT/stat_arb_workflow_latest.json"
 
 if [[ "$INCLUDE_PAPER_STATUS" == "true" ]]; then
   if "$PROJECT_ROOT/scripts/paper_status.sh" >"$PAPER_STATUS_FILE" 2>&1; then
@@ -112,7 +119,7 @@ fi
 TIMESTAMP="$(date -u '+%Y%m%dT%H%M%SZ')"
 REPORT_PATH="$REPORT_ROOT/trade_workflow_${TIMESTAMP}.md"
 
-"$PYTHON_BIN" - "$DIAGNOSTICS_JSON" "$PAPER_STATUS_FILE" "$POSITIONS_FILE" "$LLM_SUMMARY_FILE" "$REPORT_PATH" "$PROJECT_ROOT/lean_workspace/QualityGrowthPi/config.py" <<'PY'
+"$PYTHON_BIN" - "$DIAGNOSTICS_JSON" "$PAPER_STATUS_FILE" "$POSITIONS_FILE" "$LLM_SUMMARY_FILE" "$STAT_ARB_SUMMARY_FILE" "$REPORT_PATH" "$LEAN_CONFIG_PATH" <<'PY'
 from __future__ import annotations
 
 import json
@@ -120,10 +127,12 @@ import sys
 from pathlib import Path
 
 from src.operator_workflow import (
+    build_pair_trade_contexts,
     build_candidate_contexts,
     build_workflow_report,
     fetch_alpaca_account_and_positions,
     load_lean_strategy_config,
+    run_stat_arb_operator_cycle,
     run_operator_advisories,
 )
 from src.settings import load_settings
@@ -133,8 +142,9 @@ diagnostics_path = Path(sys.argv[1])
 paper_status_path = Path(sys.argv[2])
 positions_path = Path(sys.argv[3])
 llm_summary_path = Path(sys.argv[4])
-report_path = Path(sys.argv[5])
-config_path = Path(sys.argv[6])
+stat_arb_summary_path = Path(sys.argv[5])
+report_path = Path(sys.argv[6])
+config_path = Path(sys.argv[7])
 
 settings = load_settings()
 settings.ensure_directories()
@@ -145,11 +155,26 @@ diagnostics = json.loads(diagnostics_path.read_text(encoding="utf-8"))
 paper_status_text = paper_status_path.read_text(encoding="utf-8").strip() if paper_status_path.exists() else "not requested"
 positions_payload = fetch_alpaca_account_and_positions()
 positions_path.write_text(json.dumps(positions_payload, indent=2, sort_keys=True), encoding="utf-8")
-
-contexts = build_candidate_contexts(
-    positions_payload=positions_payload,
-    max_symbols=settings.llm.max_symbols_per_batch,
-)
+stat_arb_summary = None
+if settings.runtime.strategy_mode.value == "stat_arb_graph_pairs":
+    try:
+        portfolio_equity = float(positions_payload.get("account", {}).get("equity", 0) or 0)
+    except (TypeError, ValueError):
+        portfolio_equity = 0.0
+    if portfolio_equity <= 0:
+        portfolio_equity = float(settings.execution.initial_cash)
+    stat_arb_summary = run_stat_arb_operator_cycle(
+        settings=settings,
+        store=store,
+        portfolio_equity=portfolio_equity,
+    )
+    contexts = build_pair_trade_contexts(stat_arb_summary)
+    stat_arb_summary_path.write_text(json.dumps(stat_arb_summary, indent=2, sort_keys=True), encoding="utf-8")
+else:
+    contexts = build_candidate_contexts(
+        positions_payload=positions_payload,
+        max_symbols=settings.llm.max_symbols_per_batch,
+    )
 llm_summary = run_operator_advisories(settings=settings, store=store, contexts=contexts)
 llm_summary_path.write_text(json.dumps(llm_summary, indent=2, sort_keys=True), encoding="utf-8")
 
@@ -160,11 +185,14 @@ report = build_workflow_report(
     paper_status_text=paper_status_text,
     positions_payload=positions_payload,
     llm_summary=llm_summary,
+    stat_arb_summary=stat_arb_summary,
 )
 report_path.write_text(report, encoding="utf-8")
 store.close()
 
 print(report)
+if stat_arb_summary is not None:
+    print(f"\nSaved stat-arb summary to {stat_arb_summary_path}")
 print(f"\nSaved LLM summary to {llm_summary_path}")
 print(f"Saved report to {report_path}")
 PY

@@ -49,6 +49,20 @@ class ExecutionBroker(str, Enum):
     QUANTCONNECT_PAPER = "quantconnect_paper"
 
 
+class StrategyMode(str, Enum):
+    """Supported strategy families."""
+
+    QUALITY_GROWTH = "quality_growth"
+    STAT_ARB_GRAPH_PAIRS = "stat_arb_graph_pairs"
+
+
+class MLFilterMode(str, Enum):
+    """Supported stat-arb ML inference backends."""
+
+    EMBEDDED_SCORECARD = "embedded_scorecard"
+    OBJECT_STORE_MODEL = "object_store_model"
+
+
 class NewsProviderMode(str, Enum):
     """Supported news ingestion modes."""
 
@@ -103,6 +117,7 @@ class FundamentalThresholds(BaseConfigModel):
     pe_ratio_min: float = 0.0
     peg_ratio_min: float = 0.0
     peg_ratio_max: float = 2.0
+    sector_percentile_min: float = 0.7
 
     @model_validator(mode="after")
     def validate_bounds(self) -> "FundamentalThresholds":
@@ -110,6 +125,8 @@ class FundamentalThresholds(BaseConfigModel):
             raise ValueError("debt_to_equity_max must exceed debt_to_equity_min")
         if self.peg_ratio_max <= self.peg_ratio_min:
             raise ValueError("peg_ratio_max must exceed peg_ratio_min")
+        if not 0.0 <= self.sector_percentile_min <= 1.0:
+            raise ValueError("sector_percentile_min must be between 0.0 and 1.0")
         return self
 
 
@@ -148,7 +165,7 @@ class StrategyWeights(BaseConfigModel):
 class RebalanceConfig(BaseConfigModel):
     """Portfolio construction and rebalance cadence settings."""
 
-    frequency: str = "monthly"
+    frequency: str = "daily"
     anchor_symbol: str = "SPY"
     after_open_minutes: int = 30
     max_holdings: int = 20
@@ -206,6 +223,7 @@ class RuntimeConfig(BaseConfigModel):
     """Runtime controls loaded from app config and environment."""
 
     environment: str = "dev"
+    strategy_mode: StrategyMode = StrategyMode.QUALITY_GROWTH
     provider_mode: ProviderMode = ProviderMode.QUANTCONNECT_LOCAL
     llm_enabled: bool = True
     llm_mode: LLMMode = LLMMode.OBSERVE_ONLY
@@ -230,8 +248,218 @@ class ExecutionConfig(BaseConfigModel):
 
     paper_default: bool = True
     require_live_confirmation: bool = True
+    backtest_start_date: str = "2018-01-01"
+    initial_cash: float = 100_000.0
     stale_data_max_age_minutes: int = 30
     bootstrap_history_days: int = 35
+    fine_universe_limit: int = 1000
+
+    @field_validator("initial_cash")
+    @classmethod
+    def positive_cash(cls, value: float) -> float:
+        if value <= 0:
+            raise ValueError("initial_cash must be positive")
+        return value
+
+    @field_validator("stale_data_max_age_minutes", "bootstrap_history_days", "fine_universe_limit")
+    @classmethod
+    def positive_execution_int(cls, value: int) -> int:
+        if value <= 0:
+            raise ValueError("value must be positive")
+        return value
+
+    @field_validator("backtest_start_date")
+    @classmethod
+    def valid_start_date(cls, value: str) -> str:
+        datetime.strptime(value, "%Y-%m-%d")
+        return value
+
+
+class StatArbUniverseConfig(BaseConfigModel):
+    """Universe and history controls for the stat-arb research path."""
+
+    symbols: list[str] = Field(
+        default_factory=lambda: [
+            "AAPL",
+            "MSFT",
+            "NVDA",
+            "AVGO",
+            "AMD",
+            "QCOM",
+            "META",
+            "GOOGL",
+            "AMZN",
+            "TSM",
+            "ADBE",
+            "CRM",
+        ]
+    )
+    lookback_days: int = 90
+    min_history_days: int = 60
+    min_price: float = 5.0
+
+    @field_validator("symbols")
+    @classmethod
+    def validate_symbols(cls, value: list[str]) -> list[str]:
+        normalized = sorted({symbol.strip().upper() for symbol in value if symbol.strip()})
+        if len(normalized) < 2:
+            raise ValueError("stat-arb universe requires at least two symbols")
+        return normalized
+
+
+class StatArbGraphConfig(BaseConfigModel):
+    """Graph construction controls for return-correlation clustering."""
+
+    correlation_lookback_days: int = 60
+    min_correlation: float = 0.65
+    min_cluster_size: int = 2
+    max_cluster_size: int = 6
+    max_pairs_per_cluster: int = 2
+
+    @model_validator(mode="after")
+    def validate_graph(self) -> "StatArbGraphConfig":
+        if not 0.0 < self.min_correlation <= 1.0:
+            raise ValueError("min_correlation must be between 0.0 and 1.0")
+        if self.max_cluster_size < self.min_cluster_size:
+            raise ValueError("max_cluster_size must be at least min_cluster_size")
+        if self.max_pairs_per_cluster <= 0:
+            raise ValueError("max_pairs_per_cluster must be positive")
+        return self
+
+
+class StatArbSpreadConfig(BaseConfigModel):
+    """Spread-signal thresholds for pair generation and entry."""
+
+    zscore_lookback_days: int = 30
+    entry_z_score: float = 1.75
+    take_profit_z_score: float = 0.35
+    stop_loss_z_score: float = 3.25
+    max_half_life_days: float = 20.0
+    min_correlation_stability: float = 0.45
+    min_expected_edge_bps: float = 18.0
+    transaction_cost_bps: float = 5.0
+
+    @model_validator(mode="after")
+    def validate_spread(self) -> "StatArbSpreadConfig":
+        if self.entry_z_score <= 0:
+            raise ValueError("entry_z_score must be positive")
+        if self.take_profit_z_score < 0:
+            raise ValueError("take_profit_z_score must be non-negative")
+        if self.stop_loss_z_score <= self.entry_z_score:
+            raise ValueError("stop_loss_z_score must exceed entry_z_score")
+        if self.max_half_life_days <= 0:
+            raise ValueError("max_half_life_days must be positive")
+        return self
+
+
+class PairExitPolicy(BaseConfigModel):
+    """Dynamic exit policy for an open pair trade."""
+
+    initial_take_profit_z_score: float = 0.35
+    minimum_take_profit_z_score: float = 0.10
+    initial_stop_loss_z_score: float = 3.25
+    minimum_stop_loss_z_score: float = 2.10
+    decay_half_life_days: float = 8.0
+    max_holding_days: int = 15
+
+    @model_validator(mode="after")
+    def validate_policy(self) -> "PairExitPolicy":
+        if self.initial_take_profit_z_score < self.minimum_take_profit_z_score:
+            raise ValueError("initial_take_profit_z_score must exceed or equal minimum_take_profit_z_score")
+        if self.initial_stop_loss_z_score < self.minimum_stop_loss_z_score:
+            raise ValueError("initial_stop_loss_z_score must exceed or equal minimum_stop_loss_z_score")
+        if self.decay_half_life_days <= 0:
+            raise ValueError("decay_half_life_days must be positive")
+        if self.max_holding_days <= 0:
+            raise ValueError("max_holding_days must be positive")
+        return self
+
+
+class KellySizingPolicy(BaseConfigModel):
+    """Sizing caps for pair trades."""
+
+    payoff_ratio_floor: float = 1.0
+    probability_floor: float = 0.52
+    min_fraction: float = 0.01
+    max_fraction: float = 0.12
+    max_gross_exposure_per_trade: float = 0.18
+    max_gross_exposure_total: float = 1.25
+    max_net_exposure_total: float = 0.15
+    max_open_pairs: int = 6
+    max_pairs_per_cluster: int = 2
+    overlap_penalty: float = 0.5
+
+    @model_validator(mode="after")
+    def validate_policy(self) -> "KellySizingPolicy":
+        if self.payoff_ratio_floor <= 0:
+            raise ValueError("payoff_ratio_floor must be positive")
+        if not 0 < self.probability_floor < 1:
+            raise ValueError("probability_floor must be between 0 and 1")
+        if not 0 < self.min_fraction <= self.max_fraction:
+            raise ValueError("min_fraction must be positive and <= max_fraction")
+        if self.max_open_pairs <= 0:
+            raise ValueError("max_open_pairs must be positive")
+        if self.max_pairs_per_cluster <= 0:
+            raise ValueError("max_pairs_per_cluster must be positive")
+        return self
+
+
+class MLEnsembleMember(BaseConfigModel):
+    """Single offline-trained scorecard used inside the ensemble."""
+
+    name: str
+    intercept: float = 0.0
+    weights: dict[str, float] = Field(default_factory=dict)
+
+
+class MLFilterConfig(BaseConfigModel):
+    """Inference-only ML filter configuration."""
+
+    mode: MLFilterMode = MLFilterMode.EMBEDDED_SCORECARD
+    model_version: str = "ensemble_v1"
+    probability_threshold: float = 0.58
+    min_confidence: float = 0.55
+    object_store_model_key: str = ""
+    local_model_path: str = ""
+    feature_schema_version: str = "stat_arb_v1"
+    fallback_mode: MLFilterMode = MLFilterMode.EMBEDDED_SCORECARD
+    members: list[MLEnsembleMember] = Field(default_factory=list)
+
+    @field_validator("object_store_model_key", "local_model_path", "feature_schema_version", "model_version")
+    @classmethod
+    def strip_value(cls, value: str) -> str:
+        return value.strip()
+
+    @model_validator(mode="after")
+    def validate_config(self) -> "MLFilterConfig":
+        if not self.members:
+            raise ValueError("ML filter requires at least one ensemble member")
+        if not 0 < self.probability_threshold < 1:
+            raise ValueError("probability_threshold must be between 0 and 1")
+        if not 0 < self.min_confidence <= 1:
+            raise ValueError("min_confidence must be between 0 and 1")
+        if self.fallback_mode != MLFilterMode.EMBEDDED_SCORECARD:
+            raise ValueError("fallback_mode must remain embedded_scorecard")
+        if self.mode == MLFilterMode.OBJECT_STORE_MODEL and not (
+            self.object_store_model_key or self.local_model_path
+        ):
+            raise ValueError("object_store_model mode requires object_store_model_key or local_model_path")
+        if not self.feature_schema_version:
+            raise ValueError("feature_schema_version must not be empty")
+        return self
+
+
+class StatArbSettings(BaseConfigModel):
+    """Graph-clustered statistical arbitrage strategy configuration."""
+
+    algorithm_name: str = "GraphStatArb"
+    benchmark_symbol: str = "SPY"
+    universe: StatArbUniverseConfig = Field(default_factory=StatArbUniverseConfig)
+    graph: StatArbGraphConfig = Field(default_factory=StatArbGraphConfig)
+    spread: StatArbSpreadConfig = Field(default_factory=StatArbSpreadConfig)
+    exit_policy: PairExitPolicy = Field(default_factory=PairExitPolicy)
+    sizing: KellySizingPolicy = Field(default_factory=KellySizingPolicy)
+    ml_filter: MLFilterConfig
 
 
 class BacktestConfig(BaseConfigModel):
@@ -294,6 +522,14 @@ class LLMPolicyConfig(BaseConfigModel):
     low_coverage_threshold: float = 0.4
     max_weight_reduction: float = 0.5
     require_manual_review_on_reduce_size: bool = True
+    confidence_half_life_hours: float = 24.0
+
+    @field_validator("confidence_half_life_hours")
+    @classmethod
+    def validate_half_life(cls, value: float) -> float:
+        if value <= 0:
+            raise ValueError("confidence_half_life_hours must be positive")
+        return value
 
 
 class LLMPromptConfig(BaseConfigModel):
@@ -334,6 +570,7 @@ class FundamentalSnapshot(BaseModel):
 
     symbol: str
     as_of: datetime | None = None
+    sector_code: str | None = None
     has_fundamental_data: bool = True
     market_cap: float
     exchange_id: str
@@ -389,6 +626,118 @@ class RebalanceIntent(BaseModel):
     scored_candidates: list[RankedCandidate]
     llm_policy_mode: LLMMode = LLMMode.OBSERVE_ONLY
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class ClusterSnapshot(BaseModel):
+    """Deterministic snapshot of one return-correlation cluster."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    cluster_id: str
+    as_of: datetime
+    symbols: list[str]
+    average_correlation: float
+    edge_count: int
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class SpreadFeatures(BaseModel):
+    """Per-pair spread state used for signal generation and ML filtering."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    pair_id: str
+    cluster_id: str
+    first_symbol: str
+    second_symbol: str
+    hedge_ratio: float
+    correlation: float
+    correlation_stability: float
+    current_spread: float
+    spread_mean: float
+    spread_std: float
+    z_score: float
+    mean_reversion_speed: float
+    half_life_days: float
+    transaction_cost_bps: float
+    expected_edge_bps: float
+    last_updated: datetime
+
+
+class PairCandidate(BaseModel):
+    """Candidate pair or spread generated from a cluster."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    pair_id: str
+    cluster_id: str
+    first_symbol: str
+    second_symbol: str
+    spread_features: SpreadFeatures
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class MLTradeFilterDecision(BaseModel):
+    """Inference result for deciding whether a pair trade should execute."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    pair_id: str
+    cluster_id: str
+    execute: bool
+    predicted_win_probability: float = Field(ge=0.0, le=1.0)
+    confidence_score: float = Field(ge=0.0, le=1.0)
+    expected_edge_bps: float
+    vote_ratio: float = Field(ge=0.0, le=1.0)
+    model_version: str
+    rationale: str
+    feature_importance: dict[str, float] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class PairTradeIntent(BaseModel):
+    """Pair-native execution target with long and short legs."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    pair_id: str
+    cluster_id: str
+    long_symbol: str
+    short_symbol: str
+    long_weight: float
+    short_weight: float
+    gross_exposure: float
+    net_exposure: float
+    kelly_fraction: float
+    entry_z_score: float
+    expected_edge_bps: float
+    decision: MLTradeFilterDecision
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+
+class PairPositionState(BaseModel):
+    """Live or simulated state for an open pair trade."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    pair_id: str
+    cluster_id: str
+    long_symbol: str
+    short_symbol: str
+    opened_at: datetime
+    status: str = "open"
+    entry_z_score: float
+    latest_z_score: float
+    hedge_ratio: float
+    gross_exposure: float
+    net_exposure: float
+    kelly_fraction: float
+    stop_loss_z_score: float
+    take_profit_z_score: float
+    max_holding_days: int
+    notes: list[str] = Field(default_factory=list)
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class HoldingsSnapshot(BaseModel):
@@ -511,6 +860,8 @@ class RiskDecision(BaseModel):
     manual_review_required: bool = False
     applied: bool = False
     reason: str = ""
+    effective_confidence_score: float | None = None
+    decay_factor: float | None = None
 
 
 class AdvisoryEnvelope(BaseModel):

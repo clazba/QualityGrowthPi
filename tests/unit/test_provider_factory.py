@@ -12,6 +12,7 @@ from src.settings import load_settings
 def test_resolve_provider_plan_reflects_default_repo_strategy() -> None:
     settings = load_settings()
     plan = resolve_provider_plan(settings)
+    assert plan.strategy_mode == "quality_growth"
     assert plan.backtest_mode == "cloud"
     assert plan.paper_broker == "alpaca"
     assert plan.paper_deployment_target == "cloud"

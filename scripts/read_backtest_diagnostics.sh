@@ -4,7 +4,6 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="$PROJECT_ROOT/.env"
 LEAN_PROJECT_DIR="$PROJECT_ROOT/lean_workspace"
-LEAN_PROJECT_NAME="${LEAN_BACKTEST_PROJECT:-QualityGrowthPi}"
 
 if [[ -f "$ENV_FILE" ]]; then
   set -a
@@ -12,6 +11,13 @@ if [[ -f "$ENV_FILE" ]]; then
   source "$ENV_FILE"
   set +a
 fi
+
+STRATEGY_MODE="${QUANT_GPT_STRATEGY_MODE:-quality_growth}"
+DEFAULT_PROJECT="QualityGrowthPi"
+if [[ "$STRATEGY_MODE" == "stat_arb_graph_pairs" ]]; then
+  DEFAULT_PROJECT="GraphStatArb"
+fi
+LEAN_PROJECT_NAME="${LEAN_BACKTEST_PROJECT:-$DEFAULT_PROJECT}"
 
 if [[ -x "$PROJECT_ROOT/.venv/bin/python" ]]; then
   PYTHON_BIN="$PROJECT_ROOT/.venv/bin/python"

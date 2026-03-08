@@ -21,7 +21,22 @@ if ! command -v lean >/dev/null 2>&1; then
   exit 1
 fi
 
+if [[ -f "$PROJECT_ROOT/.env" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$PROJECT_ROOT/.env"
+  set +a
+fi
+
+STRATEGY_MODE="${QUANT_GPT_STRATEGY_MODE:-quality_growth}"
+DEFAULT_PROJECT="QualityGrowthPi"
+if [[ "$STRATEGY_MODE" == "stat_arb_graph_pairs" ]]; then
+  DEFAULT_PROJECT="GraphStatArb"
+fi
+LEAN_BACKTEST_PROJECT="${LEAN_BACKTEST_PROJECT:-$DEFAULT_PROJECT}"
+
 "$PROJECT_ROOT/scripts/sync_lean_config.sh"
+"$PROJECT_ROOT/scripts/sync_lean_project.sh"
 
 cd "$PROJECT_ROOT/lean_workspace"
-lean live "QualityGrowthPi"
+lean live "$LEAN_BACKTEST_PROJECT"

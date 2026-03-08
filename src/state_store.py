@@ -9,7 +9,17 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from src.models import AdvisoryEnvelope, AuditEvent, HoldingsSnapshot, SentimentSnapshot
+from src.models import (
+    AdvisoryEnvelope,
+    AuditEvent,
+    ClusterSnapshot,
+    HoldingsSnapshot,
+    MLTradeFilterDecision,
+    PairCandidate,
+    PairPositionState,
+    PairTradeIntent,
+    SentimentSnapshot,
+)
 
 
 def _json_default(value: Any) -> Any:
@@ -120,6 +130,37 @@ class StateStore:
                 model_name TEXT NOT NULL,
                 estimated_cost_usd REAL NOT NULL,
                 cache_hit INTEGER NOT NULL
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS cluster_snapshots (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                strategy_mode TEXT NOT NULL,
+                cluster_id TEXT NOT NULL,
+                as_of TEXT NOT NULL,
+                payload_json TEXT NOT NULL
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS pair_opportunities (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                as_of TEXT NOT NULL,
+                pair_id TEXT NOT NULL,
+                cluster_id TEXT NOT NULL,
+                status TEXT NOT NULL,
+                features_json TEXT NOT NULL,
+                decision_json TEXT,
+                intent_json TEXT,
+                metadata_json TEXT NOT NULL
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS pair_position_state (
+                pair_id TEXT PRIMARY KEY,
+                cluster_id TEXT NOT NULL,
+                status TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                payload_json TEXT NOT NULL
             )
             """,
         ]
@@ -330,6 +371,142 @@ class StateStore:
                 "policy_mode": row["policy_mode"],
                 "payload": json.loads(row["payload_json"]),
                 "decision": json.loads(row["decision_json"]),
+            }
+            for row in rows
+        ]
+
+    def save_cluster_snapshots(
+        self,
+        snapshots: list[ClusterSnapshot],
+        strategy_mode: str = "stat_arb_graph_pairs",
+    ) -> None:
+        self.connection.executemany(
+            """
+            INSERT INTO cluster_snapshots(strategy_mode, cluster_id, as_of, payload_json)
+            VALUES (?, ?, ?, ?)
+            """,
+            [
+                (
+                    strategy_mode,
+                    snapshot.cluster_id,
+                    snapshot.as_of.isoformat(),
+                    snapshot.model_dump_json(),
+                )
+                for snapshot in snapshots
+            ],
+        )
+        self.connection.commit()
+
+    def save_pair_opportunity(
+        self,
+        as_of: datetime,
+        candidate: PairCandidate,
+        status: str,
+        decision: MLTradeFilterDecision | None = None,
+        intent: PairTradeIntent | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        self.connection.execute(
+            """
+            INSERT INTO pair_opportunities(
+                as_of, pair_id, cluster_id, status, features_json, decision_json, intent_json, metadata_json
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                as_of.isoformat(),
+                candidate.pair_id,
+                candidate.cluster_id,
+                status,
+                candidate.spread_features.model_dump_json(),
+                None if decision is None else decision.model_dump_json(),
+                None if intent is None else intent.model_dump_json(),
+                json.dumps(metadata or candidate.metadata, default=_json_default, sort_keys=True),
+            ),
+        )
+        self.connection.commit()
+
+    def upsert_pair_position_state(self, state: PairPositionState) -> None:
+        self.connection.execute(
+            """
+            INSERT INTO pair_position_state(pair_id, cluster_id, status, updated_at, payload_json)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(pair_id) DO UPDATE SET
+                cluster_id = excluded.cluster_id,
+                status = excluded.status,
+                updated_at = excluded.updated_at,
+                payload_json = excluded.payload_json
+            """,
+            (
+                state.pair_id,
+                state.cluster_id,
+                state.status,
+                state.updated_at.isoformat(),
+                state.model_dump_json(),
+            ),
+        )
+        self.connection.commit()
+
+    def latest_cluster_snapshots(self, limit: int = 10) -> list[dict[str, Any]]:
+        rows = self.connection.execute(
+            """
+            SELECT strategy_mode, cluster_id, as_of, payload_json
+            FROM cluster_snapshots
+            ORDER BY as_of DESC, cluster_id ASC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+        return [
+            {
+                "strategy_mode": row["strategy_mode"],
+                "cluster_id": row["cluster_id"],
+                "as_of": row["as_of"],
+                "payload": json.loads(row["payload_json"]),
+            }
+            for row in rows
+        ]
+
+    def latest_pair_opportunities(self, limit: int = 10) -> list[dict[str, Any]]:
+        rows = self.connection.execute(
+            """
+            SELECT as_of, pair_id, cluster_id, status, features_json, decision_json, intent_json, metadata_json
+            FROM pair_opportunities
+            ORDER BY as_of DESC, id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+        return [
+            {
+                "as_of": row["as_of"],
+                "pair_id": row["pair_id"],
+                "cluster_id": row["cluster_id"],
+                "status": row["status"],
+                "features": json.loads(row["features_json"]),
+                "decision": None if row["decision_json"] is None else json.loads(row["decision_json"]),
+                "intent": None if row["intent_json"] is None else json.loads(row["intent_json"]),
+                "metadata": json.loads(row["metadata_json"]),
+            }
+            for row in rows
+        ]
+
+    def open_pair_positions(self) -> list[dict[str, Any]]:
+        rows = self.connection.execute(
+            """
+            SELECT pair_id, cluster_id, status, updated_at, payload_json
+            FROM pair_position_state
+            WHERE status = 'open'
+            ORDER BY updated_at DESC, pair_id ASC
+            """
+        ).fetchall()
+        return [
+            {
+                "pair_id": row["pair_id"],
+                "cluster_id": row["cluster_id"],
+                "status": row["status"],
+                "updated_at": row["updated_at"],
+                "payload": json.loads(row["payload_json"]),
             }
             for row in rows
         ]

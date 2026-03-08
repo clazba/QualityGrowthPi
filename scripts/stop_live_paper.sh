@@ -16,13 +16,19 @@ if [[ -f "$ENV_FILE" ]]; then
   set +a
 fi
 
+STRATEGY_MODE="${QUANT_GPT_STRATEGY_MODE:-quality_growth}"
+DEFAULT_PROJECT="QualityGrowthPi"
+if [[ "$STRATEGY_MODE" == "stat_arb_graph_pairs" ]]; then
+  DEFAULT_PROJECT="GraphStatArb"
+fi
+
 if ! command -v lean >/dev/null 2>&1; then
   printf 'LEAN CLI is not installed. Run make setup first.\n' >&2
   exit 1
 fi
 
-LEAN_BACKTEST_PROJECT="${LEAN_BACKTEST_PROJECT:-QualityGrowthPi}"
-PROJECT_SELECTOR="${LEAN_BACKTEST_PROJECT_ID:-${LEAN_BACKTEST_PROJECT:-QualityGrowthPi}}"
+LEAN_BACKTEST_PROJECT="${LEAN_BACKTEST_PROJECT:-$DEFAULT_PROJECT}"
+PROJECT_SELECTOR="${LEAN_BACKTEST_PROJECT_ID:-${LEAN_BACKTEST_PROJECT:-$DEFAULT_PROJECT}}"
 PAPER_DEPLOYMENT_TARGET="${PAPER_DEPLOYMENT_TARGET:-cloud}"
 
 read -r -p "Stop paper deployment for ${PROJECT_SELECTOR} (liquidate=${LIQUIDATE_ON_STOP})? [y/N]: " reply

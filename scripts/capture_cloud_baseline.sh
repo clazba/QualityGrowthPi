@@ -11,6 +11,13 @@ if [[ -f "$ENV_FILE" ]]; then
   set +a
 fi
 
+STRATEGY_MODE="${QUANT_GPT_STRATEGY_MODE:-quality_growth}"
+DEFAULT_PROJECT="QualityGrowthPi"
+if [[ "$STRATEGY_MODE" == "stat_arb_graph_pairs" ]]; then
+  DEFAULT_PROJECT="GraphStatArb"
+fi
+LEAN_PROJECT_NAME="${LEAN_BACKTEST_PROJECT:-$DEFAULT_PROJECT}"
+
 if [[ -x "$PROJECT_ROOT/.venv/bin/python" ]]; then
   PYTHON_BIN="$PROJECT_ROOT/.venv/bin/python"
 else
@@ -42,7 +49,7 @@ if [[ ! -f "$DIAGNOSTICS_PATH" ]]; then
 fi
 
 cd "$PROJECT_ROOT"
-"$PYTHON_BIN" - "$PROJECT_ROOT" "$DIAGNOSTICS_PATH" "$BACKTEST_ID" "$PROJECT_ID" <<'PY'
+"$PYTHON_BIN" - "$PROJECT_ROOT" "$DIAGNOSTICS_PATH" "$BACKTEST_ID" "$PROJECT_ID" "$LEAN_PROJECT_NAME" <<'PY'
 from __future__ import annotations
 
 import json
@@ -54,8 +61,9 @@ project_root = Path(sys.argv[1]).resolve()
 diagnostics_path = Path(sys.argv[2]).resolve()
 backtest_id = sys.argv[3]
 project_id = int(sys.argv[4])
-baseline_root = project_root / "lean_workspace" / "QualityGrowthPi" / "tests" / "regression" / "cloud_baselines" / backtest_id
-manifest_path = project_root / "lean_workspace" / "QualityGrowthPi" / "tests" / "regression" / "baseline_manifest.json"
+project_name = sys.argv[5]
+baseline_root = project_root / "lean_workspace" / project_name / "tests" / "regression" / "cloud_baselines" / backtest_id
+manifest_path = project_root / "lean_workspace" / project_name / "tests" / "regression" / "baseline_manifest.json"
 
 payload = json.loads(diagnostics_path.read_text(encoding="utf-8"))
 summary = dict(payload.get("summary", {}))
@@ -91,7 +99,34 @@ files = {
 for filename, content in files.items():
     (baseline_root / filename).write_text(json.dumps(content, indent=2, sort_keys=True), encoding="utf-8")
 
-manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+if manifest_path.exists():
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+else:
+    expected_artifacts = (
+        [
+            "cluster_snapshots",
+            "pair_candidates",
+            "ml_filter_decisions",
+            "pair_trade_intents",
+            "pair_position_state",
+            "cloud_baseline_bundles",
+        ]
+        if project_name == "GraphStatArb"
+        else [
+            "universe_snapshots",
+            "score_tables",
+            "target_weights",
+            "order_events",
+            "holdings_snapshots",
+            "cloud_baseline_bundles",
+        ]
+    )
+    manifest = {
+        "description": "Baseline artefact slots for future QuantConnect comparison bundles.",
+        "expected_artifacts": expected_artifacts,
+        "captured_baselines": [],
+        "latest_baseline_id": None,
+    }
 captured_baselines = list(manifest.get("captured_baselines", []))
 captured_baselines = [entry for entry in captured_baselines if entry.get("backtest_id") != backtest_id]
 captured_baselines.append(

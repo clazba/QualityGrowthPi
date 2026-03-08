@@ -1,5 +1,6 @@
 runtime:
   environment: dev
+  strategy_mode: quality_growth
   provider_mode: external_equivalent
   llm_enabled: true
   llm_mode: observe_only
