@@ -42,6 +42,7 @@ For an operator-focused setup and usage guide, see [docs/quickstart.md](/Volumes
 
 - Backtest: `make backtest` (`QuantConnect cloud` is the default and validated path)
 - Stat-arb model upload: `make upload-stat-arb-model` (validates a versioned sklearn/joblib artifact locally, then uploads it to QuantConnect Object Store)
+- Stat-arb model training: `python scripts/train_stat_arb_softvote.py --price-history-json <file> --artifact-output <file>` (builds supervised pair samples, runs walk-forward grid search across the five-model soft-voting ensemble, and writes the joblib artifact contract expected by the cloud loader)
 - Operator workflow: `make workflow` (builds the deterministic opportunity report, loads recent news, runs LLM advisory review for current paper candidates, and writes a markdown report under `results/opportunities/`)
 - Paper trading: `make paper-check`, `./scripts/list_qc_nodes.sh`, `make live-paper`, `make paper-status`, `make paper-stop` (`Alpaca paper` via `QuantConnect cloud + Alpaca brokerage` is the default first stage)
 - LLM advisory history: `make llm-report`
@@ -89,7 +90,7 @@ Pinned environment variables for `object_store_model` mode:
 Recommended Object Store key shape:
 
 ```text
-stat-arb/models/<model_version>/ensemble.joblib
+<project_id>/stat-arb/models/<model_version>/ensemble.joblib
 ```
 
 Upload flow:

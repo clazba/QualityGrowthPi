@@ -35,6 +35,7 @@ make backtest
 make workflow
 make llm-report
 make upload-stat-arb-model
+python scripts/train_stat_arb_softvote.py --price-history-json <file> --artifact-output <file>
 make paper-check
 make live-paper
 make paper-status
@@ -56,6 +57,8 @@ What they mean:
   - prints saved LLM advisories from SQLite
 - `make upload-stat-arb-model`
   - validates and uploads the pinned stat-arb sklearn/joblib artifact to QuantConnect Object Store
+- `python scripts/train_stat_arb_softvote.py --price-history-json <file> --artifact-output <file>`
+  - generates supervised stat-arb pair samples from aligned close history, fits the five-model soft-voting ensemble, and writes the joblib artifact
 - `make paper-check`
   - validates Alpaca paper credentials and account reachability
 - `make live-paper`
