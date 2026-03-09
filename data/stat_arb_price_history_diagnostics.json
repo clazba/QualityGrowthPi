@@ -1,0 +1,571 @@
+{
+  "common_days": null,
+  "export_mode": "provider_validated",
+  "provider_policy": {
+    "max_latest_close_drift_bps": 250.0,
+    "max_max_abs_return_drift_bps": 500.0,
+    "max_mean_abs_return_drift_bps": 75.0,
+    "minimum_validator_overlap_days": 30,
+    "primary": "massive",
+    "repair": "alpha_vantage",
+    "validation_window_days": 60,
+    "validator": "alpaca"
+  },
+  "symbols_excluded": {
+    "AAPL": {
+      "attempts": {
+        "primary": {
+          "error": "Massive request failed: 403 Client Error: Forbidden for url: https://api.massive.com/v2/aggs/ticker/AAPL/range/1/day/2023-03-07/2024-03-06?adjusted=true&sort=asc&limit=500&apiKey=ovKfmVp86OEW8kqX8Ys8ShcmrdiBg8KA",
+          "provider": "massive"
+        },
+        "primary_validation": null,
+        "repair": {
+          "error": "Alpha Vantage daily payload did not contain 'Time Series (Daily)'",
+          "provider": "alpha_vantage"
+        },
+        "repair_validation": null,
+        "validator": {
+          "date_range": {
+            "end": "2026-03-06",
+            "start": "2023-03-02"
+          },
+          "metadata": {
+            "adjusted": true,
+            "base_url": "https://data.alpaca.markets",
+            "feed": "iex",
+            "requested_lookback_days": 756
+          },
+          "provider": "alpaca",
+          "quality": {
+            "day_count": 756,
+            "issues": [],
+            "max_close": 285.82,
+            "min_close": 143.85,
+            "non_finite_close_count": 0,
+            "non_positive_close_count": 0,
+            "passed": true,
+            "suspicious_return_count": 0
+          },
+          "symbol": "AAPL"
+        }
+      },
+      "providers": {
+        "primary": "massive",
+        "repair": "alpha_vantage",
+        "validator": "alpaca"
+      },
+      "reason": "no_validated_series",
+      "validator_error": null
+    },
+    "ADBE": {
+      "attempts": {
+        "primary": {
+          "error": "Massive request failed: 403 Client Error: Forbidden for url: https://api.massive.com/v2/aggs/ticker/ADBE/range/1/day/2023-03-07/2024-03-06?adjusted=true&sort=asc&limit=500&apiKey=ovKfmVp86OEW8kqX8Ys8ShcmrdiBg8KA",
+          "provider": "massive"
+        },
+        "primary_validation": null,
+        "repair": {
+          "error": "Alpha Vantage daily payload did not contain 'Time Series (Daily)'",
+          "provider": "alpha_vantage"
+        },
+        "repair_validation": null,
+        "validator": {
+          "date_range": {
+            "end": "2026-03-06",
+            "start": "2023-03-02"
+          },
+          "metadata": {
+            "adjusted": true,
+            "base_url": "https://data.alpaca.markets",
+            "feed": "iex",
+            "requested_lookback_days": 756
+          },
+          "provider": "alpaca",
+          "quality": {
+            "day_count": 756,
+            "issues": [],
+            "max_close": 634.72,
+            "min_close": 246.7,
+            "non_finite_close_count": 0,
+            "non_positive_close_count": 0,
+            "passed": true,
+            "suspicious_return_count": 0
+          },
+          "symbol": "ADBE"
+        }
+      },
+      "providers": {
+        "primary": "massive",
+        "repair": "alpha_vantage",
+        "validator": "alpaca"
+      },
+      "reason": "no_validated_series",
+      "validator_error": null
+    },
+    "AMD": {
+      "attempts": {
+        "primary": {
+          "error": "Massive request failed: 403 Client Error: Forbidden for url: https://api.massive.com/v2/aggs/ticker/AMD/range/1/day/2023-03-07/2024-03-06?adjusted=true&sort=asc&limit=500&apiKey=ovKfmVp86OEW8kqX8Ys8ShcmrdiBg8KA",
+          "provider": "massive"
+        },
+        "primary_validation": null,
+        "repair": {
+          "error": "Alpha Vantage daily payload did not contain 'Time Series (Daily)'",
+          "provider": "alpha_vantage"
+        },
+        "repair_validation": null,
+        "validator": {
+          "date_range": {
+            "end": "2026-03-06",
+            "start": "2023-03-02"
+          },
+          "metadata": {
+            "adjusted": true,
+            "base_url": "https://data.alpaca.markets",
+            "feed": "iex",
+            "requested_lookback_days": 756
+          },
+          "provider": "alpaca",
+          "quality": {
+            "day_count": 756,
+            "issues": [],
+            "max_close": 264.31,
+            "min_close": 78.27,
+            "non_finite_close_count": 0,
+            "non_positive_close_count": 0,
+            "passed": true,
+            "suspicious_return_count": 0
+          },
+          "symbol": "AMD"
+        }
+      },
+      "providers": {
+        "primary": "massive",
+        "repair": "alpha_vantage",
+        "validator": "alpaca"
+      },
+      "reason": "no_validated_series",
+      "validator_error": null
+    },
+    "AMZN": {
+      "attempts": {
+        "primary": {
+          "error": "Massive request failed: 403 Client Error: Forbidden for url: https://api.massive.com/v2/aggs/ticker/AMZN/range/1/day/2023-03-07/2024-03-06?adjusted=true&sort=asc&limit=500&apiKey=ovKfmVp86OEW8kqX8Ys8ShcmrdiBg8KA",
+          "provider": "massive"
+        },
+        "primary_validation": null,
+        "repair": {
+          "error": "Alpha Vantage daily payload did not contain 'Time Series (Daily)'",
+          "provider": "alpha_vantage"
+        },
+        "repair_validation": null,
+        "validator": {
+          "date_range": {
+            "end": "2026-03-06",
+            "start": "2023-03-02"
+          },
+          "metadata": {
+            "adjusted": true,
+            "base_url": "https://data.alpaca.markets",
+            "feed": "iex",
+            "requested_lookback_days": 756
+          },
+          "provider": "alpaca",
+          "quality": {
+            "day_count": 756,
+            "issues": [],
+            "max_close": 253.99,
+            "min_close": 90.735,
+            "non_finite_close_count": 0,
+            "non_positive_close_count": 0,
+            "passed": true,
+            "suspicious_return_count": 0
+          },
+          "symbol": "AMZN"
+        }
+      },
+      "providers": {
+        "primary": "massive",
+        "repair": "alpha_vantage",
+        "validator": "alpaca"
+      },
+      "reason": "no_validated_series",
+      "validator_error": null
+    },
+    "AVGO": {
+      "attempts": {
+        "primary": {
+          "error": "Massive request failed after 6 attempts due to rate limiting: https://api.massive.com/v2/aggs/ticker/AVGO/range/1/day/2023-03-07/2024-03-06",
+          "provider": "massive"
+        },
+        "primary_validation": null,
+        "repair": {
+          "error": "Alpha Vantage daily payload did not contain 'Time Series (Daily)'",
+          "provider": "alpha_vantage"
+        },
+        "repair_validation": null,
+        "validator": {
+          "date_range": {
+            "end": "2026-03-06",
+            "start": "2023-03-02"
+          },
+          "metadata": {
+            "adjusted": true,
+            "base_url": "https://data.alpaca.markets",
+            "feed": "iex",
+            "requested_lookback_days": 756
+          },
+          "provider": "alpaca",
+          "quality": {
+            "day_count": 756,
+            "issues": [],
+            "max_close": 412.01,
+            "min_close": 57.29,
+            "non_finite_close_count": 0,
+            "non_positive_close_count": 0,
+            "passed": true,
+            "suspicious_return_count": 0
+          },
+          "symbol": "AVGO"
+        }
+      },
+      "providers": {
+        "primary": "massive",
+        "repair": "alpha_vantage",
+        "validator": "alpaca"
+      },
+      "reason": "no_validated_series",
+      "validator_error": null
+    },
+    "CRM": {
+      "attempts": {
+        "primary": {
+          "error": "Massive request failed after 6 attempts due to rate limiting: https://api.massive.com/v2/aggs/ticker/CRM/range/1/day/2023-03-07/2024-03-06",
+          "provider": "massive"
+        },
+        "primary_validation": null,
+        "repair": {
+          "error": "Alpha Vantage daily payload did not contain 'Time Series (Daily)'",
+          "provider": "alpha_vantage"
+        },
+        "repair_validation": null,
+        "validator": {
+          "date_range": {
+            "end": "2026-03-06",
+            "start": "2023-03-02"
+          },
+          "metadata": {
+            "adjusted": true,
+            "base_url": "https://data.alpaca.markets",
+            "feed": "iex",
+            "requested_lookback_days": 756
+          },
+          "provider": "alpaca",
+          "quality": {
+            "day_count": 756,
+            "issues": [],
+            "max_close": 365.17,
+            "min_close": 171.25,
+            "non_finite_close_count": 0,
+            "non_positive_close_count": 0,
+            "passed": true,
+            "suspicious_return_count": 0
+          },
+          "symbol": "CRM"
+        }
+      },
+      "providers": {
+        "primary": "massive",
+        "repair": "alpha_vantage",
+        "validator": "alpaca"
+      },
+      "reason": "no_validated_series",
+      "validator_error": null
+    },
+    "GOOGL": {
+      "attempts": {
+        "primary": {
+          "error": "Massive request failed after 6 attempts due to rate limiting: https://api.massive.com/v2/aggs/ticker/GOOGL/range/1/day/2023-03-07/2024-03-06",
+          "provider": "massive"
+        },
+        "primary_validation": null,
+        "repair": {
+          "error": "Alpha Vantage daily payload did not contain 'Time Series (Daily)'",
+          "provider": "alpha_vantage"
+        },
+        "repair_validation": null,
+        "validator": {
+          "date_range": {
+            "end": "2026-03-06",
+            "start": "2023-03-02"
+          },
+          "metadata": {
+            "adjusted": true,
+            "base_url": "https://data.alpaca.markets",
+            "feed": "iex",
+            "requested_lookback_days": 756
+          },
+          "provider": "alpaca",
+          "quality": {
+            "day_count": 756,
+            "issues": [],
+            "max_close": 343.8,
+            "min_close": 89.93,
+            "non_finite_close_count": 0,
+            "non_positive_close_count": 0,
+            "passed": true,
+            "suspicious_return_count": 0
+          },
+          "symbol": "GOOGL"
+        }
+      },
+      "providers": {
+        "primary": "massive",
+        "repair": "alpha_vantage",
+        "validator": "alpaca"
+      },
+      "reason": "no_validated_series",
+      "validator_error": null
+    },
+    "META": {
+      "attempts": {
+        "primary": {
+          "error": "Massive request failed: 403 Client Error: Forbidden for url: https://api.massive.com/v2/aggs/ticker/META/range/1/day/2023-03-07/2024-03-06?adjusted=true&sort=asc&limit=500&apiKey=ovKfmVp86OEW8kqX8Ys8ShcmrdiBg8KA",
+          "provider": "massive"
+        },
+        "primary_validation": null,
+        "repair": {
+          "error": "Alpha Vantage daily payload did not contain 'Time Series (Daily)'",
+          "provider": "alpha_vantage"
+        },
+        "repair_validation": null,
+        "validator": {
+          "date_range": {
+            "end": "2026-03-06",
+            "start": "2023-03-02"
+          },
+          "metadata": {
+            "adjusted": true,
+            "base_url": "https://data.alpaca.markets",
+            "feed": "iex",
+            "requested_lookback_days": 756
+          },
+          "provider": "alpaca",
+          "quality": {
+            "day_count": 756,
+            "issues": [],
+            "max_close": 788.62,
+            "min_close": 173.33,
+            "non_finite_close_count": 0,
+            "non_positive_close_count": 0,
+            "passed": true,
+            "suspicious_return_count": 0
+          },
+          "symbol": "META"
+        }
+      },
+      "providers": {
+        "primary": "massive",
+        "repair": "alpha_vantage",
+        "validator": "alpaca"
+      },
+      "reason": "no_validated_series",
+      "validator_error": null
+    },
+    "MSFT": {
+      "attempts": {
+        "primary": {
+          "error": "Massive request failed after 6 attempts due to rate limiting: https://api.massive.com/v2/aggs/ticker/MSFT/range/1/day/2023-03-07/2024-03-06",
+          "provider": "massive"
+        },
+        "primary_validation": null,
+        "repair": {
+          "error": "Alpha Vantage daily payload did not contain 'Time Series (Daily)'",
+          "provider": "alpha_vantage"
+        },
+        "repair_validation": null,
+        "validator": {
+          "date_range": {
+            "end": "2026-03-06",
+            "start": "2023-03-02"
+          },
+          "metadata": {
+            "adjusted": true,
+            "base_url": "https://data.alpaca.markets",
+            "feed": "iex",
+            "requested_lookback_days": 756
+          },
+          "provider": "alpaca",
+          "quality": {
+            "day_count": 756,
+            "issues": [],
+            "max_close": 540.16,
+            "min_close": 242.92,
+            "non_finite_close_count": 0,
+            "non_positive_close_count": 0,
+            "passed": true,
+            "suspicious_return_count": 0
+          },
+          "symbol": "MSFT"
+        }
+      },
+      "providers": {
+        "primary": "massive",
+        "repair": "alpha_vantage",
+        "validator": "alpaca"
+      },
+      "reason": "no_validated_series",
+      "validator_error": null
+    },
+    "NVDA": {
+      "attempts": {
+        "primary": {
+          "error": "Massive request failed: 403 Client Error: Forbidden for url: https://api.massive.com/v2/aggs/ticker/NVDA/range/1/day/2023-03-07/2024-03-06?adjusted=true&sort=asc&limit=500&apiKey=ovKfmVp86OEW8kqX8Ys8ShcmrdiBg8KA",
+          "provider": "massive"
+        },
+        "primary_validation": null,
+        "repair": {
+          "error": "Alpha Vantage daily payload did not contain 'Time Series (Daily)'",
+          "provider": "alpha_vantage"
+        },
+        "repair_validation": null,
+        "validator": {
+          "date_range": {
+            "end": "2026-03-06",
+            "start": "2023-03-02"
+          },
+          "metadata": {
+            "adjusted": true,
+            "base_url": "https://data.alpaca.markets",
+            "feed": "iex",
+            "requested_lookback_days": 756
+          },
+          "provider": "alpaca",
+          "quality": {
+            "day_count": 756,
+            "issues": [],
+            "max_close": 207.02,
+            "min_close": 22.94,
+            "non_finite_close_count": 0,
+            "non_positive_close_count": 0,
+            "passed": true,
+            "suspicious_return_count": 0
+          },
+          "symbol": "NVDA"
+        }
+      },
+      "providers": {
+        "primary": "massive",
+        "repair": "alpha_vantage",
+        "validator": "alpaca"
+      },
+      "reason": "no_validated_series",
+      "validator_error": null
+    },
+    "QCOM": {
+      "attempts": {
+        "primary": {
+          "error": "Massive request failed after 6 attempts due to rate limiting: https://api.massive.com/v2/aggs/ticker/QCOM/range/1/day/2023-03-07/2024-03-06",
+          "provider": "massive"
+        },
+        "primary_validation": null,
+        "repair": {
+          "error": "Alpha Vantage daily payload did not contain 'Time Series (Daily)'",
+          "provider": "alpha_vantage"
+        },
+        "repair_validation": null,
+        "validator": {
+          "date_range": {
+            "end": "2026-03-06",
+            "start": "2023-03-02"
+          },
+          "metadata": {
+            "adjusted": true,
+            "base_url": "https://data.alpaca.markets",
+            "feed": "iex",
+            "requested_lookback_days": 756
+          },
+          "provider": "alpaca",
+          "quality": {
+            "day_count": 756,
+            "issues": [],
+            "max_close": 218.32,
+            "min_close": 96.19,
+            "non_finite_close_count": 0,
+            "non_positive_close_count": 0,
+            "passed": true,
+            "suspicious_return_count": 0
+          },
+          "symbol": "QCOM"
+        }
+      },
+      "providers": {
+        "primary": "massive",
+        "repair": "alpha_vantage",
+        "validator": "alpaca"
+      },
+      "reason": "no_validated_series",
+      "validator_error": null
+    },
+    "TSM": {
+      "attempts": {
+        "primary": {
+          "error": "Massive request failed after 6 attempts due to rate limiting: https://api.massive.com/v2/aggs/ticker/TSM/range/1/day/2023-03-07/2024-03-06",
+          "provider": "massive"
+        },
+        "primary_validation": null,
+        "repair": {
+          "error": "Alpha Vantage daily payload did not contain 'Time Series (Daily)'",
+          "provider": "alpha_vantage"
+        },
+        "repair_validation": null,
+        "validator": {
+          "date_range": {
+            "end": "2026-03-06",
+            "start": "2023-03-02"
+          },
+          "metadata": {
+            "adjusted": true,
+            "base_url": "https://data.alpaca.markets",
+            "feed": "iex",
+            "requested_lookback_days": 756
+          },
+          "provider": "alpaca",
+          "quality": {
+            "day_count": 756,
+            "issues": [],
+            "max_close": 387.73,
+            "min_close": 79.57,
+            "non_finite_close_count": 0,
+            "non_positive_close_count": 0,
+            "passed": true,
+            "suspicious_return_count": 0
+          },
+          "symbol": "TSM"
+        }
+      },
+      "providers": {
+        "primary": "massive",
+        "repair": "alpha_vantage",
+        "validator": "alpaca"
+      },
+      "reason": "no_validated_series",
+      "validator_error": null
+    }
+  },
+  "symbols_included": [],
+  "symbols_requested": [
+    "AAPL",
+    "MSFT",
+    "NVDA",
+    "AVGO",
+    "AMD",
+    "QCOM",
+    "META",
+    "GOOGL",
+    "AMZN",
+    "TSM",
+    "ADBE",
+    "CRM"
+  ]
+}

@@ -1,0 +1,3230 @@
+{
+  "common_days": 142,
+  "export_mode": "massive_flatfiles_validated",
+  "symbols_included": [
+    "AAPL",
+    "ADBE",
+    "AMD",
+    "AMZN",
+    "AVGO",
+    "CRM",
+    "GOOGL",
+    "META",
+    "MSFT",
+    "NVDA",
+    "TSM"
+  ],
+  "symbols_requested": [
+    "AAPL",
+    "ADBE",
+    "AMD",
+    "AMZN",
+    "AVGO",
+    "CRM",
+    "GOOGL",
+    "META",
+    "MSFT",
+    "NVDA",
+    "TSM"
+  ],
+  "validation_report": {
+    "flatfiles_root": "/mnt/nvme_data/shared/quant_gpt/data/massive/flatfiles/us_stocks_sip/day_aggs_v1",
+    "generated_at": "2026-03-09T14:21:40.534251+00:00",
+    "overall_status": "failed",
+    "reports": {
+      "AAPL": {
+        "actions": {
+          "by_type": {
+            "dividend": 15,
+            "split": 0
+          },
+          "count": 15,
+          "records": [
+            {
+              "action_date": "2022-08-05",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.981224,
+              "source_id": "E68b4284b4e4874b1777b1434c602614d26e73394a5292aa4ca5596e3dd17c291",
+              "symbol": "AAPL"
+            },
+            {
+              "action_date": "2022-11-04",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.982587,
+              "source_id": "E010840de0c264bcfa41450d0370c1556954564f3af2238c2396fd9770160c645",
+              "symbol": "AAPL"
+            },
+            {
+              "action_date": "2023-02-10",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.984217,
+              "source_id": "E9d8d2564c86b61f9713e2fd11fd4f429f8aebad02002d7dd405deddce672d645",
+              "symbol": "AAPL"
+            },
+            {
+              "action_date": "2023-05-12",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.98572,
+              "source_id": "E40523b0f8cdfef5de834c3d3e27d3c40267dacba8d726d6938a0a322fdcfe880",
+              "symbol": "AAPL"
+            },
+            {
+              "action_date": "2023-08-11",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.987083,
+              "source_id": "Ed2b8a80dc190d1c53e410f566b3e72b06f3c2b640730b476bebe4fcb29ccaa6c",
+              "symbol": "AAPL"
+            },
+            {
+              "action_date": "2023-11-10",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.988416,
+              "source_id": "E4851913b4ca383b7bf0ed6a597e4fc12d8b88c92a152b9c918f4354c8572cd8d",
+              "symbol": "AAPL"
+            },
+            {
+              "action_date": "2024-02-09",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.989718,
+              "source_id": "E8e4edd3b27095b7e918c127648feb5c4c256b8650b7f5c36d8ac260d8ec08086",
+              "symbol": "AAPL"
+            },
+            {
+              "action_date": "2024-05-10",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.990981,
+              "source_id": "E495b1d61b65ddc1eb3abd60eaacf33c1313433df83f5fd63f1971612ff684f79",
+              "symbol": "AAPL"
+            },
+            {
+              "action_date": "2024-08-12",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.992325,
+              "source_id": "E47fd49ef418c51f7d2415b66030f735adaccf72d85f6b86eea12f96aa1d1c535",
+              "symbol": "AAPL"
+            },
+            {
+              "action_date": "2024-11-08",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.993474,
+              "source_id": "E416a068758f85277196150c3eb73a3331d04698856c141e883ad95710dd0b189",
+              "symbol": "AAPL"
+            },
+            {
+              "action_date": "2025-02-10",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.994567,
+              "source_id": "Ecc0fc5473a63ec503030d7aff356e1c4f467301d08791ac000e10ef831b58a71",
+              "symbol": "AAPL"
+            },
+            {
+              "action_date": "2025-05-12",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.99566,
+              "source_id": "E508c0a63699951e57b51c4cf746a7f3b4101c39232372228d68585046c0b4a67",
+              "symbol": "AAPL"
+            },
+            {
+              "action_date": "2025-08-11",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.996966,
+              "source_id": "Ed2c9da60abda1e3f0e99a43f6465863c137b671e1f5cd3f833d1fcb4f4eb27fe",
+              "symbol": "AAPL"
+            },
+            {
+              "action_date": "2025-11-10",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.998098,
+              "source_id": "E46d7ebeffba0ae65cff4eb03497ce2a27de1fba5a67b5cda1ca0a8b6eedf5c8c",
+              "symbol": "AAPL"
+            },
+            {
+              "action_date": "2026-02-09",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.999065,
+              "source_id": "Ea9c1921173ef4be798ca05a1f7015b4ae452bfcf7d641a3a63c1fd852f1eaf05",
+              "symbol": "AAPL"
+            }
+          ]
+        },
+        "issues": [],
+        "raw_flatfiles": {
+          "day_count": 148,
+          "end_date": "2026-03-06",
+          "metadata": {
+            "end_date": "2026-03-06",
+            "files_scanned": 148,
+            "files_with_symbol": 148,
+            "flatfiles_root": "/mnt/nvme_data/shared/quant_gpt/data/massive/flatfiles/us_stocks_sip/day_aggs_v1",
+            "start_date": "2022-06-01"
+          },
+          "provider": "massive_flatfiles_raw",
+          "start_date": "2022-06-01"
+        },
+        "split_only_vs_massive_rest": {
+          "compared_return_days": 147,
+          "issues": [],
+          "latest_close_drift_bps": 0.0,
+          "max_abs_close_drift_bps": 0.0,
+          "max_abs_return_drift_bps": 0.0,
+          "mean_abs_close_drift_bps": 0.0,
+          "mean_abs_return_drift_bps": 0.0,
+          "overlap_days": 148,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "massive_rest_adjusted"
+        },
+        "status": "passed",
+        "top_rest_mismatches": [
+          {
+            "adjusted_close": 151.21,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 151.21,
+            "return_drift_bps": 0.0,
+            "series_return": 0.016671498,
+            "trading_date": "2022-06-02",
+            "validator_close": 151.21,
+            "validator_return": 0.016671498
+          },
+          {
+            "adjusted_close": 145.38,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 145.38,
+            "return_drift_bps": 0.0,
+            "series_return": -0.039318595,
+            "trading_date": "2022-06-03",
+            "validator_close": 145.38,
+            "validator_return": -0.039318595
+          },
+          {
+            "adjusted_close": 146.14,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 146.14,
+            "return_drift_bps": 0.0,
+            "series_return": 0.005214062,
+            "trading_date": "2022-06-06",
+            "validator_close": 146.14,
+            "validator_return": 0.005214062
+          },
+          {
+            "adjusted_close": 148.71,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 148.71,
+            "return_drift_bps": 0.0,
+            "series_return": 0.017433034,
+            "trading_date": "2022-06-07",
+            "validator_close": 148.71,
+            "validator_return": 0.017433034
+          },
+          {
+            "adjusted_close": 147.96,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 147.96,
+            "return_drift_bps": 0.0,
+            "series_return": -0.005056134,
+            "trading_date": "2022-06-08",
+            "validator_close": 147.96,
+            "validator_return": -0.005056134
+          },
+          {
+            "adjusted_close": 142.64,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 142.64,
+            "return_drift_bps": 0.0,
+            "series_return": -0.036617993,
+            "trading_date": "2022-06-09",
+            "validator_close": 142.64,
+            "validator_return": -0.036617993
+          },
+          {
+            "adjusted_close": 137.13,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 137.13,
+            "return_drift_bps": 0.0,
+            "series_return": -0.039394593,
+            "trading_date": "2022-06-10",
+            "validator_close": 137.13,
+            "validator_return": -0.039394593
+          },
+          {
+            "adjusted_close": 131.88,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 131.88,
+            "return_drift_bps": 0.0,
+            "series_return": -0.039036963,
+            "trading_date": "2022-06-13",
+            "validator_close": 131.88,
+            "validator_return": -0.039036963
+          },
+          {
+            "adjusted_close": 132.76,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 132.76,
+            "return_drift_bps": 0.0,
+            "series_return": 0.006650569,
+            "trading_date": "2022-06-14",
+            "validator_close": 132.76,
+            "validator_return": 0.006650569
+          },
+          {
+            "adjusted_close": 135.43,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 135.43,
+            "return_drift_bps": 0.0,
+            "series_return": 0.019911915,
+            "trading_date": "2022-06-15",
+            "validator_close": 135.43,
+            "validator_return": 0.019911915
+          }
+        ],
+        "total_adjusted_vs_alpaca": {
+          "compared_return_days": 65,
+          "issues": [],
+          "latest_close_drift_bps": 1.553881,
+          "max_abs_close_drift_bps": 16.513512,
+          "max_abs_return_drift_bps": 13.995825,
+          "mean_abs_close_drift_bps": 2.432395,
+          "mean_abs_return_drift_bps": 3.441586,
+          "overlap_days": 66,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "alpaca_adjusted"
+        }
+      },
+      "ADBE": {
+        "actions": {
+          "by_type": {
+            "dividend": 0,
+            "split": 0
+          },
+          "count": 0,
+          "records": []
+        },
+        "issues": [],
+        "raw_flatfiles": {
+          "day_count": 148,
+          "end_date": "2026-03-06",
+          "metadata": {
+            "end_date": "2026-03-06",
+            "files_scanned": 148,
+            "files_with_symbol": 148,
+            "flatfiles_root": "/mnt/nvme_data/shared/quant_gpt/data/massive/flatfiles/us_stocks_sip/day_aggs_v1",
+            "start_date": "2022-06-01"
+          },
+          "provider": "massive_flatfiles_raw",
+          "start_date": "2022-06-01"
+        },
+        "split_only_vs_massive_rest": {
+          "compared_return_days": 147,
+          "issues": [],
+          "latest_close_drift_bps": 0.0,
+          "max_abs_close_drift_bps": 0.0,
+          "max_abs_return_drift_bps": 0.0,
+          "mean_abs_close_drift_bps": 0.0,
+          "mean_abs_return_drift_bps": 0.0,
+          "overlap_days": 148,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "massive_rest_adjusted"
+        },
+        "status": "passed",
+        "top_rest_mismatches": [
+          {
+            "adjusted_close": 441.28,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 441.28,
+            "return_drift_bps": 0.0,
+            "series_return": 0.05381546,
+            "trading_date": "2022-06-02",
+            "validator_close": 441.28,
+            "validator_return": 0.05381546
+          },
+          {
+            "adjusted_close": 429.76,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 429.76,
+            "return_drift_bps": 0.0,
+            "series_return": -0.026452681,
+            "trading_date": "2022-06-03",
+            "validator_close": 429.76,
+            "validator_return": -0.026452681
+          },
+          {
+            "adjusted_close": 429.46,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 429.46,
+            "return_drift_bps": 0.0,
+            "series_return": -0.000698308,
+            "trading_date": "2022-06-06",
+            "validator_close": 429.46,
+            "validator_return": -0.000698308
+          },
+          {
+            "adjusted_close": 433.42,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 433.42,
+            "return_drift_bps": 0.0,
+            "series_return": 0.009178629,
+            "trading_date": "2022-06-07",
+            "validator_close": 433.42,
+            "validator_return": 0.009178629
+          },
+          {
+            "adjusted_close": 428.84,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 428.84,
+            "return_drift_bps": 0.0,
+            "series_return": -0.010623346,
+            "trading_date": "2022-06-08",
+            "validator_close": 428.84,
+            "validator_return": -0.010623346
+          },
+          {
+            "adjusted_close": 426.42,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 426.42,
+            "return_drift_bps": 0.0,
+            "series_return": -0.005659113,
+            "trading_date": "2022-06-09",
+            "validator_close": 426.42,
+            "validator_return": -0.005659113
+          },
+          {
+            "adjusted_close": 393.84,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 393.84,
+            "return_drift_bps": 0.0,
+            "series_return": -0.079480041,
+            "trading_date": "2022-06-10",
+            "validator_close": 393.84,
+            "validator_return": -0.079480041
+          },
+          {
+            "adjusted_close": 371.65,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 371.65,
+            "return_drift_bps": 0.0,
+            "series_return": -0.057992184,
+            "trading_date": "2022-06-13",
+            "validator_close": 371.65,
+            "validator_return": -0.057992184
+          },
+          {
+            "adjusted_close": 370.82,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 370.82,
+            "return_drift_bps": 0.0,
+            "series_return": -0.002235782,
+            "trading_date": "2022-06-14",
+            "validator_close": 370.82,
+            "validator_return": -0.002235782
+          },
+          {
+            "adjusted_close": 376.92,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 376.92,
+            "return_drift_bps": 0.0,
+            "series_return": 0.016316194,
+            "trading_date": "2022-06-15",
+            "validator_close": 376.92,
+            "validator_return": 0.016316194
+          }
+        ],
+        "total_adjusted_vs_alpaca": {
+          "compared_return_days": 65,
+          "issues": [],
+          "latest_close_drift_bps": 0.352572,
+          "max_abs_close_drift_bps": 10.77147,
+          "max_abs_return_drift_bps": 12.489604,
+          "mean_abs_close_drift_bps": 1.931727,
+          "mean_abs_return_drift_bps": 2.690741,
+          "overlap_days": 66,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "alpaca_adjusted"
+        }
+      },
+      "AMD": {
+        "actions": {
+          "by_type": {
+            "dividend": 0,
+            "split": 0
+          },
+          "count": 0,
+          "records": []
+        },
+        "issues": [],
+        "raw_flatfiles": {
+          "day_count": 148,
+          "end_date": "2026-03-06",
+          "metadata": {
+            "end_date": "2026-03-06",
+            "files_scanned": 148,
+            "files_with_symbol": 148,
+            "flatfiles_root": "/mnt/nvme_data/shared/quant_gpt/data/massive/flatfiles/us_stocks_sip/day_aggs_v1",
+            "start_date": "2022-06-01"
+          },
+          "provider": "massive_flatfiles_raw",
+          "start_date": "2022-06-01"
+        },
+        "split_only_vs_massive_rest": {
+          "compared_return_days": 147,
+          "issues": [],
+          "latest_close_drift_bps": 0.0,
+          "max_abs_close_drift_bps": 0.0,
+          "max_abs_return_drift_bps": 0.0,
+          "mean_abs_close_drift_bps": 0.0,
+          "mean_abs_return_drift_bps": 0.0,
+          "overlap_days": 148,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "massive_rest_adjusted"
+        },
+        "status": "passed",
+        "top_rest_mismatches": [
+          {
+            "adjusted_close": 108.59,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 108.59,
+            "return_drift_bps": 0.0,
+            "series_return": 0.070282956,
+            "trading_date": "2022-06-02",
+            "validator_close": 108.59,
+            "validator_return": 0.070282956
+          },
+          {
+            "adjusted_close": 106.3,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 106.3,
+            "return_drift_bps": 0.0,
+            "series_return": -0.021314037,
+            "trading_date": "2022-06-03",
+            "validator_close": 106.3,
+            "validator_return": -0.021314037
+          },
+          {
+            "adjusted_close": 105.65,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 105.65,
+            "return_drift_bps": 0.0,
+            "series_return": -0.006133541,
+            "trading_date": "2022-06-06",
+            "validator_close": 105.65,
+            "validator_return": -0.006133541
+          },
+          {
+            "adjusted_close": 105.28,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 105.28,
+            "return_drift_bps": 0.0,
+            "series_return": -0.003508276,
+            "trading_date": "2022-06-07",
+            "validator_close": 105.28,
+            "validator_return": -0.003508276
+          },
+          {
+            "adjusted_close": 101.9,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 101.9,
+            "return_drift_bps": 0.0,
+            "series_return": -0.032631527,
+            "trading_date": "2022-06-08",
+            "validator_close": 101.9,
+            "validator_return": -0.032631527
+          },
+          {
+            "adjusted_close": 98.8,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 98.8,
+            "return_drift_bps": 0.0,
+            "series_return": -0.030894335,
+            "trading_date": "2022-06-09",
+            "validator_close": 98.8,
+            "validator_return": -0.030894335
+          },
+          {
+            "adjusted_close": 94.82,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 94.82,
+            "return_drift_bps": 0.0,
+            "series_return": -0.041117247,
+            "trading_date": "2022-06-10",
+            "validator_close": 94.82,
+            "validator_return": -0.041117247
+          },
+          {
+            "adjusted_close": 86.99,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 86.99,
+            "return_drift_bps": 0.0,
+            "series_return": -0.086187188,
+            "trading_date": "2022-06-13",
+            "validator_close": 86.99,
+            "validator_return": -0.086187188
+          },
+          {
+            "adjusted_close": 86.99,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 86.99,
+            "return_drift_bps": 0.0,
+            "series_return": 0.0,
+            "trading_date": "2022-06-14",
+            "validator_close": 86.99,
+            "validator_return": 0.0
+          },
+          {
+            "adjusted_close": 89.3,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 89.3,
+            "return_drift_bps": 0.0,
+            "series_return": 0.026208318,
+            "trading_date": "2022-06-15",
+            "validator_close": 89.3,
+            "validator_return": 0.026208318
+          }
+        ],
+        "total_adjusted_vs_alpaca": {
+          "compared_return_days": 65,
+          "issues": [],
+          "latest_close_drift_bps": 0.519696,
+          "max_abs_close_drift_bps": 14.229445,
+          "max_abs_return_drift_bps": 17.082391,
+          "mean_abs_close_drift_bps": 2.578217,
+          "mean_abs_return_drift_bps": 3.618261,
+          "overlap_days": 66,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "alpaca_adjusted"
+        }
+      },
+      "AMZN": {
+        "actions": {
+          "by_type": {
+            "dividend": 0,
+            "split": 1
+          },
+          "count": 1,
+          "records": [
+            {
+              "action_date": "2022-06-06",
+              "action_type": "split",
+              "historical_adjustment_factor": 0.05,
+              "source_id": "Ef72af690fef1f9db3fd5382ca3c92c8885ea75761e9cdf54825fc7139bd88c6b",
+              "symbol": "AMZN"
+            }
+          ]
+        },
+        "issues": [],
+        "raw_flatfiles": {
+          "day_count": 148,
+          "end_date": "2026-03-06",
+          "metadata": {
+            "end_date": "2026-03-06",
+            "files_scanned": 148,
+            "files_with_symbol": 148,
+            "flatfiles_root": "/mnt/nvme_data/shared/quant_gpt/data/massive/flatfiles/us_stocks_sip/day_aggs_v1",
+            "start_date": "2022-06-01"
+          },
+          "provider": "massive_flatfiles_raw",
+          "start_date": "2022-06-01"
+        },
+        "split_only_vs_massive_rest": {
+          "compared_return_days": 147,
+          "issues": [],
+          "latest_close_drift_bps": 0.0,
+          "max_abs_close_drift_bps": 0.0,
+          "max_abs_return_drift_bps": 0.0,
+          "mean_abs_close_drift_bps": 0.0,
+          "mean_abs_return_drift_bps": 0.0,
+          "overlap_days": 148,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "massive_rest_adjusted"
+        },
+        "status": "passed",
+        "top_rest_mismatches": [
+          {
+            "adjusted_close": 122.35,
+            "adjustment_factor": 0.05,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2022-06-06",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.05,
+                "source_id": "Ef72af690fef1f9db3fd5382ca3c92c8885ea75761e9cdf54825fc7139bd88c6b",
+                "symbol": "AMZN"
+              }
+            ],
+            "raw_close": 2447.0,
+            "return_drift_bps": 0.0,
+            "series_return": -0.025507614,
+            "trading_date": "2022-06-03",
+            "validator_close": 122.35,
+            "validator_return": -0.025507614
+          },
+          {
+            "adjusted_close": 125.511,
+            "adjustment_factor": 0.05,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2022-06-06",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.05,
+                "source_id": "Ef72af690fef1f9db3fd5382ca3c92c8885ea75761e9cdf54825fc7139bd88c6b",
+                "symbol": "AMZN"
+              }
+            ],
+            "raw_close": 2510.22,
+            "return_drift_bps": 0.0,
+            "series_return": 0.030965884,
+            "trading_date": "2022-06-02",
+            "validator_close": 125.511,
+            "validator_return": 0.030965884
+          },
+          {
+            "adjusted_close": 124.79,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 124.79,
+            "return_drift_bps": 0.0,
+            "series_return": 0.019746535,
+            "trading_date": "2022-06-06",
+            "validator_close": 124.79,
+            "validator_return": 0.019746535
+          },
+          {
+            "adjusted_close": 123.0,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 123.0,
+            "return_drift_bps": 0.0,
+            "series_return": -0.014447969,
+            "trading_date": "2022-06-07",
+            "validator_close": 123.0,
+            "validator_return": -0.014447969
+          },
+          {
+            "adjusted_close": 121.18,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 121.18,
+            "return_drift_bps": 0.0,
+            "series_return": -0.014907312,
+            "trading_date": "2022-06-08",
+            "validator_close": 121.18,
+            "validator_return": -0.014907312
+          },
+          {
+            "adjusted_close": 116.15,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 116.15,
+            "return_drift_bps": 0.0,
+            "series_return": -0.042394584,
+            "trading_date": "2022-06-09",
+            "validator_close": 116.15,
+            "validator_return": -0.042394584
+          },
+          {
+            "adjusted_close": 109.65,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 109.65,
+            "return_drift_bps": 0.0,
+            "series_return": -0.057588984,
+            "trading_date": "2022-06-10",
+            "validator_close": 109.65,
+            "validator_return": -0.057588984
+          },
+          {
+            "adjusted_close": 103.67,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 103.67,
+            "return_drift_bps": 0.0,
+            "series_return": -0.056080698,
+            "trading_date": "2022-06-13",
+            "validator_close": 103.67,
+            "validator_return": -0.056080698
+          },
+          {
+            "adjusted_close": 102.31,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 102.31,
+            "return_drift_bps": 0.0,
+            "series_return": -0.013205357,
+            "trading_date": "2022-06-14",
+            "validator_close": 102.31,
+            "validator_return": -0.013205357
+          },
+          {
+            "adjusted_close": 107.67,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 107.67,
+            "return_drift_bps": 0.0,
+            "series_return": 0.051063574,
+            "trading_date": "2022-06-15",
+            "validator_close": 107.67,
+            "validator_return": 0.051063574
+          }
+        ],
+        "total_adjusted_vs_alpaca": {
+          "compared_return_days": 65,
+          "issues": [],
+          "latest_close_drift_bps": 6.100995,
+          "max_abs_close_drift_bps": 10.563934,
+          "max_abs_return_drift_bps": 13.53389,
+          "mean_abs_close_drift_bps": 2.325862,
+          "mean_abs_return_drift_bps": 3.332642,
+          "overlap_days": 66,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "alpaca_adjusted"
+        }
+      },
+      "AVGO": {
+        "actions": {
+          "by_type": {
+            "dividend": 15,
+            "split": 1
+          },
+          "count": 16,
+          "records": [
+            {
+              "action_date": "2022-06-21",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.932585,
+              "source_id": "E2155ada8e8eff09af4f81287db644f357abf593cfb10cfc855b89d5a9408a44d",
+              "symbol": "AVGO"
+            },
+            {
+              "action_date": "2022-09-21",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.940316,
+              "source_id": "Eae5f4f25da9ea2655834766d4ce7105c463bb7ad9698a2249828eec58e1ee148",
+              "symbol": "AVGO"
+            },
+            {
+              "action_date": "2022-12-19",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.948201,
+              "source_id": "E5c0579af9128e2b0ab476fb6987627ab21c1a350fff6b83cb0fd4c488d7bd70b",
+              "symbol": "AVGO"
+            },
+            {
+              "action_date": "2023-03-21",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.956113,
+              "source_id": "E0552fab055b2193831d7c2e835027c294f6f2bd4730e636e8f1dc4e2f1cda2dc",
+              "symbol": "AVGO"
+            },
+            {
+              "action_date": "2023-06-21",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.962994,
+              "source_id": "E6d9c8ccb21cf11bcc9677725089a900e8eb3d4ff3f98db55cfa5e2ca42cb5c72",
+              "symbol": "AVGO"
+            },
+            {
+              "action_date": "2023-09-20",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.968125,
+              "source_id": "E958938bd5573e3244f52f053271aba8e0a0d9071176f1c7c8efb9785b7a40924",
+              "symbol": "AVGO"
+            },
+            {
+              "action_date": "2023-12-19",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.973397,
+              "source_id": "E662881d0ed94ff0444e0043c02d7dbad2b5dc142e59721787dea4e24f691d4b4",
+              "symbol": "AVGO"
+            },
+            {
+              "action_date": "2024-03-20",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.977873,
+              "source_id": "Ebfc886fc13d1a72f25b996d77ce6a5614ee8bd039fb2a5e0c15949ee4044e28f",
+              "symbol": "AVGO"
+            },
+            {
+              "action_date": "2024-06-24",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.982038,
+              "source_id": "Eb3f5e82f417a8219d8c9f4613bd7acfb39cfcbbc28d8fb3d42cc916915ad979a",
+              "symbol": "AVGO"
+            },
+            {
+              "action_date": "2024-07-15",
+              "action_type": "split",
+              "historical_adjustment_factor": 0.1,
+              "source_id": "Ef81191c68453de801d67443c3b3af15efe1e05e9da59c7d06352597de378697c",
+              "symbol": "AVGO"
+            },
+            {
+              "action_date": "2024-09-19",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.985156,
+              "source_id": "E7e3328286b7cddd2b9f0fe0f52b1eb9df4c3a6deeb2faf6bf471d9a3b6d74be7",
+              "symbol": "AVGO"
+            },
+            {
+              "action_date": "2024-12-23",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.988396,
+              "source_id": "Ea6d312072e09b2d6efb88a234fe3f7aafcb76b9cf21fb9c1eb657f3e4402173e",
+              "symbol": "AVGO"
+            },
+            {
+              "action_date": "2025-03-20",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.991045,
+              "source_id": "Ebf0c4e43f5455b14c8fa34554053e3a159c0a1e0e3480a26860ba39477f903ec",
+              "symbol": "AVGO"
+            },
+            {
+              "action_date": "2025-06-20",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.994043,
+              "source_id": "E154820bafad83f5afee788977d8cef6f3d45fa2f429047f297ac9621654524b6",
+              "symbol": "AVGO"
+            },
+            {
+              "action_date": "2025-09-22",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.996383,
+              "source_id": "E08c2ddd7f2c363a91bf4cdc1bea668c2c38192fd0063186f43dbed41d6ae659b",
+              "symbol": "AVGO"
+            },
+            {
+              "action_date": "2025-12-22",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.99809,
+              "source_id": "E08e7319354b96049b27ea4d2e630b7cfdcb3a85f0da22f660f994deee91aaf27",
+              "symbol": "AVGO"
+            }
+          ]
+        },
+        "issues": [],
+        "raw_flatfiles": {
+          "day_count": 148,
+          "end_date": "2026-03-06",
+          "metadata": {
+            "end_date": "2026-03-06",
+            "files_scanned": 148,
+            "files_with_symbol": 148,
+            "flatfiles_root": "/mnt/nvme_data/shared/quant_gpt/data/massive/flatfiles/us_stocks_sip/day_aggs_v1",
+            "start_date": "2022-06-01"
+          },
+          "provider": "massive_flatfiles_raw",
+          "start_date": "2022-06-01"
+        },
+        "split_only_vs_massive_rest": {
+          "compared_return_days": 147,
+          "issues": [],
+          "latest_close_drift_bps": 0.0,
+          "max_abs_close_drift_bps": 0.0,
+          "max_abs_return_drift_bps": 0.0,
+          "mean_abs_close_drift_bps": 0.0,
+          "mean_abs_return_drift_bps": 0.0,
+          "overlap_days": 148,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "massive_rest_adjusted"
+        },
+        "status": "passed",
+        "top_rest_mismatches": [
+          {
+            "adjusted_close": 132.19,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-07-15",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ef81191c68453de801d67443c3b3af15efe1e05e9da59c7d06352597de378697c",
+                "symbol": "AVGO"
+              }
+            ],
+            "raw_close": 1321.9,
+            "return_drift_bps": 0.0,
+            "series_return": 0.903661834,
+            "trading_date": "2024-06-03",
+            "validator_close": 132.19,
+            "validator_return": 0.903661834
+          },
+          {
+            "adjusted_close": 140.664,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-07-15",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ef81191c68453de801d67443c3b3af15efe1e05e9da59c7d06352597de378697c",
+                "symbol": "AVGO"
+              }
+            ],
+            "raw_close": 1406.64,
+            "return_drift_bps": 0.0,
+            "series_return": 0.003824914,
+            "trading_date": "2024-06-07",
+            "validator_close": 140.664,
+            "validator_return": 0.003824914
+          },
+          {
+            "adjusted_close": 149.551,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-07-15",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ef81191c68453de801d67443c3b3af15efe1e05e9da59c7d06352597de378697c",
+                "symbol": "AVGO"
+              }
+            ],
+            "raw_close": 1495.51,
+            "return_drift_bps": 0.0,
+            "series_return": 0.023325619,
+            "trading_date": "2024-06-12",
+            "validator_close": 149.551,
+            "validator_return": 0.023325619
+          },
+          {
+            "adjusted_close": 158.666,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-07-15",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ef81191c68453de801d67443c3b3af15efe1e05e9da59c7d06352597de378697c",
+                "symbol": "AVGO"
+              }
+            ],
+            "raw_close": 1586.66,
+            "return_drift_bps": 0.0,
+            "series_return": -0.00335991,
+            "trading_date": "2024-06-27",
+            "validator_close": 158.666,
+            "validator_return": -0.00335991
+          },
+          {
+            "adjusted_close": 159.2,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-07-15",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ef81191c68453de801d67443c3b3af15efe1e05e9da59c7d06352597de378697c",
+                "symbol": "AVGO"
+              }
+            ],
+            "raw_close": 1592.0,
+            "return_drift_bps": 0.0,
+            "series_return": 0.007066365,
+            "trading_date": "2024-06-26",
+            "validator_close": 159.2,
+            "validator_return": 0.007066365
+          },
+          {
+            "adjusted_close": 165.748,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-07-15",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ef81191c68453de801d67443c3b3af15efe1e05e9da59c7d06352597de378697c",
+                "symbol": "AVGO"
+              }
+            ],
+            "raw_close": 1657.48,
+            "return_drift_bps": 0.0,
+            "series_return": 0.010114449,
+            "trading_date": "2024-07-02",
+            "validator_close": 165.748,
+            "validator_return": 0.010114449
+          },
+          {
+            "adjusted_close": 165.863,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-07-15",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ef81191c68453de801d67443c3b3af15efe1e05e9da59c7d06352597de378697c",
+                "symbol": "AVGO"
+              }
+            ],
+            "raw_close": 1658.63,
+            "return_drift_bps": 0.0,
+            "series_return": -0.044761819,
+            "trading_date": "2024-06-21",
+            "validator_close": 165.863,
+            "validator_return": -0.044761819
+          },
+          {
+            "adjusted_close": 170.331,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-07-15",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ef81191c68453de801d67443c3b3af15efe1e05e9da59c7d06352597de378697c",
+                "symbol": "AVGO"
+              }
+            ],
+            "raw_close": 1703.31,
+            "return_drift_bps": 0.0,
+            "series_return": -0.015097023,
+            "trading_date": "2024-07-05",
+            "validator_close": 170.331,
+            "validator_return": -0.015097023
+          },
+          {
+            "adjusted_close": 170.595,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-07-15",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ef81191c68453de801d67443c3b3af15efe1e05e9da59c7d06352597de378697c",
+                "symbol": "AVGO"
+              }
+            ],
+            "raw_close": 1705.95,
+            "return_drift_bps": 0.0,
+            "series_return": -0.022454749,
+            "trading_date": "2024-07-11",
+            "validator_close": 170.595,
+            "validator_return": -0.022454749
+          },
+          {
+            "adjusted_close": 172.922,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-07-15",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ef81191c68453de801d67443c3b3af15efe1e05e9da59c7d06352597de378697c",
+                "symbol": "AVGO"
+              }
+            ],
+            "raw_close": 1729.22,
+            "return_drift_bps": 0.0,
+            "series_return": 0.042372063,
+            "trading_date": "2024-07-03",
+            "validator_close": 172.922,
+            "validator_return": 0.042372063
+          }
+        ],
+        "total_adjusted_vs_alpaca": {
+          "compared_return_days": 65,
+          "issues": [],
+          "latest_close_drift_bps": 0.0,
+          "max_abs_close_drift_bps": 15.414472,
+          "max_abs_return_drift_bps": 19.581403,
+          "mean_abs_close_drift_bps": 2.525991,
+          "mean_abs_return_drift_bps": 3.975827,
+          "overlap_days": 66,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "alpaca_adjusted"
+        }
+      },
+      "CRM": {
+        "actions": {
+          "by_type": {
+            "dividend": 8,
+            "split": 0
+          },
+          "count": 8,
+          "records": [
+            {
+              "action_date": "2024-03-13",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.987996,
+              "source_id": "Ebed0db61597b97691141f2f60f7d0cd6f8f087741827b0114a4454b9a1e4bb4b",
+              "symbol": "CRM"
+            },
+            {
+              "action_date": "2024-07-09",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.989286,
+              "source_id": "E5de347174aa8949515c66be686b078a7bb1022e9c58d5441a07ae42381861d70",
+              "symbol": "CRM"
+            },
+            {
+              "action_date": "2024-09-18",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.990826,
+              "source_id": "Ed382db62b30ac864d80394ed4e713103a07663900eaa15bf6cec440c02b5727d",
+              "symbol": "CRM"
+            },
+            {
+              "action_date": "2024-12-18",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.992382,
+              "source_id": "E69304ea4be6776e79a58173f427dd2084c2f9ad546628efbc0d88c3b155fc8ba",
+              "symbol": "CRM"
+            },
+            {
+              "action_date": "2025-04-10",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.993514,
+              "source_id": "E5776b1351245d8fe9201a670049c8365eb42ef7a7c3f53a6a3a7a49d76dca6a4",
+              "symbol": "CRM"
+            },
+            {
+              "action_date": "2025-06-18",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.995075,
+              "source_id": "E97be4079d1b98bfde4295e3016f97d487115f097ddd9d64ae2f48d4805caf693",
+              "symbol": "CRM"
+            },
+            {
+              "action_date": "2025-09-17",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.996653,
+              "source_id": "E82c4ff156ea2560fceb854dac1f78ea4e83b4f12dba68e9b3d1f5dfd4001cfe3",
+              "symbol": "CRM"
+            },
+            {
+              "action_date": "2025-12-18",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.998388,
+              "source_id": "E703cb7d451ec2bc5c9f6ab58c6737c3784f895dcd8380c4617932ccd376071eb",
+              "symbol": "CRM"
+            }
+          ]
+        },
+        "issues": [],
+        "raw_flatfiles": {
+          "day_count": 148,
+          "end_date": "2026-03-06",
+          "metadata": {
+            "end_date": "2026-03-06",
+            "files_scanned": 148,
+            "files_with_symbol": 148,
+            "flatfiles_root": "/mnt/nvme_data/shared/quant_gpt/data/massive/flatfiles/us_stocks_sip/day_aggs_v1",
+            "start_date": "2022-06-01"
+          },
+          "provider": "massive_flatfiles_raw",
+          "start_date": "2022-06-01"
+        },
+        "split_only_vs_massive_rest": {
+          "compared_return_days": 147,
+          "issues": [],
+          "latest_close_drift_bps": 0.0,
+          "max_abs_close_drift_bps": 0.0,
+          "max_abs_return_drift_bps": 0.0,
+          "mean_abs_close_drift_bps": 0.0,
+          "mean_abs_return_drift_bps": 0.0,
+          "overlap_days": 148,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "massive_rest_adjusted"
+        },
+        "status": "passed",
+        "top_rest_mismatches": [
+          {
+            "adjusted_close": 188.4,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 188.4,
+            "return_drift_bps": 0.0,
+            "series_return": 0.067685719,
+            "trading_date": "2022-06-02",
+            "validator_close": 188.4,
+            "validator_return": 0.067685719
+          },
+          {
+            "adjusted_close": 184.91,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 184.91,
+            "return_drift_bps": 0.0,
+            "series_return": -0.018698142,
+            "trading_date": "2022-06-03",
+            "validator_close": 184.91,
+            "validator_return": -0.018698142
+          },
+          {
+            "adjusted_close": 182.87,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 182.87,
+            "return_drift_bps": 0.0,
+            "series_return": -0.011093702,
+            "trading_date": "2022-06-06",
+            "validator_close": 182.87,
+            "validator_return": -0.011093702
+          },
+          {
+            "adjusted_close": 187.15,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 187.15,
+            "return_drift_bps": 0.0,
+            "series_return": 0.023134916,
+            "trading_date": "2022-06-07",
+            "validator_close": 187.15,
+            "validator_return": 0.023134916
+          },
+          {
+            "adjusted_close": 189.19,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 189.19,
+            "return_drift_bps": 0.0,
+            "series_return": 0.010841367,
+            "trading_date": "2022-06-08",
+            "validator_close": 189.19,
+            "validator_return": 0.010841367
+          },
+          {
+            "adjusted_close": 187.11,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 187.11,
+            "return_drift_bps": 0.0,
+            "series_return": -0.011055122,
+            "trading_date": "2022-06-09",
+            "validator_close": 187.11,
+            "validator_return": -0.011055122
+          },
+          {
+            "adjusted_close": 178.45,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 178.45,
+            "return_drift_bps": 0.0,
+            "series_return": -0.047388229,
+            "trading_date": "2022-06-10",
+            "validator_close": 178.45,
+            "validator_return": -0.047388229
+          },
+          {
+            "adjusted_close": 166.03,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 166.03,
+            "return_drift_bps": 0.0,
+            "series_return": -0.072139955,
+            "trading_date": "2022-06-13",
+            "validator_close": 166.03,
+            "validator_return": -0.072139955
+          },
+          {
+            "adjusted_close": 164.45,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 164.45,
+            "return_drift_bps": 0.0,
+            "series_return": -0.009561922,
+            "trading_date": "2022-06-14",
+            "validator_close": 164.45,
+            "validator_return": -0.009561922
+          },
+          {
+            "adjusted_close": 168.55,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 168.55,
+            "return_drift_bps": 0.0,
+            "series_return": 0.024625869,
+            "trading_date": "2022-06-15",
+            "validator_close": 168.55,
+            "validator_return": 0.024625869
+          }
+        ],
+        "total_adjusted_vs_alpaca": {
+          "compared_return_days": 65,
+          "issues": [],
+          "latest_close_drift_bps": 1.237103,
+          "max_abs_close_drift_bps": 9.898927,
+          "max_abs_return_drift_bps": 10.392657,
+          "mean_abs_close_drift_bps": 2.079875,
+          "mean_abs_return_drift_bps": 2.890812,
+          "overlap_days": 66,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "alpaca_adjusted"
+        }
+      },
+      "GOOGL": {
+        "actions": {
+          "by_type": {
+            "dividend": 8,
+            "split": 1
+          },
+          "count": 9,
+          "records": [
+            {
+              "action_date": "2022-07-18",
+              "action_type": "split",
+              "historical_adjustment_factor": 0.05,
+              "source_id": "E75f0e6c8145d353f2226725ab925f972bcd3f5d050116c4318aba162466c269c",
+              "symbol": "GOOGL"
+            },
+            {
+              "action_date": "2024-06-10",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.991803,
+              "source_id": "E22b716d8cc8fbd28e9172343f99ae9619d0ded112cd2d8c39c990de4df8ccf7b",
+              "symbol": "GOOGL"
+            },
+            {
+              "action_date": "2024-09-09",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.992941,
+              "source_id": "E875229bc5dc90c8b1df144a7ff7d0f726e1f3b0996ab365d8300969139e8f44d",
+              "symbol": "GOOGL"
+            },
+            {
+              "action_date": "2024-12-09",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.994259,
+              "source_id": "Ead65a9fcc755e36a2781ae7f72ddd735db8f828bb054ce31251ac4498f86c547",
+              "symbol": "GOOGL"
+            },
+            {
+              "action_date": "2025-03-10",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.995398,
+              "source_id": "E1cdc29fc580666cc27dbd3bfa5a79b65dca59bfcba64b62af8fa45833a79a652",
+              "symbol": "GOOGL"
+            },
+            {
+              "action_date": "2025-06-09",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.996545,
+              "source_id": "Eb0768616defecdc7ed9f208ce457ee0ab571656a30a1e197abdd334dfd3a5f42",
+              "symbol": "GOOGL"
+            },
+            {
+              "action_date": "2025-09-08",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.997751,
+              "source_id": "E2292f3a906c36bf4d64b32f00034ef7260c68c42bc22f2cdcdf6bceb13342ca1",
+              "symbol": "GOOGL"
+            },
+            {
+              "action_date": "2025-12-08",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.998643,
+              "source_id": "E72b6fb7e9ec26b50a9ba79027f8b95f0f74a46a39547a06eba32924882ce6695",
+              "symbol": "GOOGL"
+            },
+            {
+              "action_date": "2026-03-09",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.999297,
+              "source_id": "Ec8bbb16b5eefc2fb5fe566869003611d5aecdd8cb58c1ade2163929c572c590c",
+              "symbol": "GOOGL"
+            }
+          ]
+        },
+        "issues": [],
+        "raw_flatfiles": {
+          "day_count": 148,
+          "end_date": "2026-03-06",
+          "metadata": {
+            "end_date": "2026-03-06",
+            "files_scanned": 148,
+            "files_with_symbol": 148,
+            "flatfiles_root": "/mnt/nvme_data/shared/quant_gpt/data/massive/flatfiles/us_stocks_sip/day_aggs_v1",
+            "start_date": "2022-06-01"
+          },
+          "provider": "massive_flatfiles_raw",
+          "start_date": "2022-06-01"
+        },
+        "split_only_vs_massive_rest": {
+          "compared_return_days": 147,
+          "issues": [],
+          "latest_close_drift_bps": 0.0,
+          "max_abs_close_drift_bps": 0.0,
+          "max_abs_return_drift_bps": 0.0,
+          "mean_abs_close_drift_bps": 0.0,
+          "mean_abs_return_drift_bps": 0.0,
+          "overlap_days": 148,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "massive_rest_adjusted"
+        },
+        "status": "passed",
+        "top_rest_mismatches": [
+          {
+            "adjusted_close": 108.963,
+            "adjustment_factor": 0.05,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2022-07-18",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.05,
+                "source_id": "E75f0e6c8145d353f2226725ab925f972bcd3f5d050116c4318aba162466c269c",
+                "symbol": "GOOGL"
+              }
+            ],
+            "raw_close": 2179.26,
+            "return_drift_bps": 0.0,
+            "series_return": -0.02482176,
+            "trading_date": "2022-06-30",
+            "validator_close": 108.963,
+            "validator_return": -0.02482176
+          },
+          {
+            "adjusted_close": 108.7375,
+            "adjustment_factor": 0.05,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2022-07-18",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.05,
+                "source_id": "E75f0e6c8145d353f2226725ab925f972bcd3f5d050116c4318aba162466c269c",
+                "symbol": "GOOGL"
+              }
+            ],
+            "raw_close": 2174.75,
+            "return_drift_bps": 0.0,
+            "series_return": -0.002071654,
+            "trading_date": "2022-07-01",
+            "validator_close": 108.7375,
+            "validator_return": -0.002071654
+          },
+          {
+            "adjusted_close": 111.3535,
+            "adjustment_factor": 0.05,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2022-07-18",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.05,
+                "source_id": "E75f0e6c8145d353f2226725ab925f972bcd3f5d050116c4318aba162466c269c",
+                "symbol": "GOOGL"
+              }
+            ],
+            "raw_close": 2227.07,
+            "return_drift_bps": 0.0,
+            "series_return": -0.023668431,
+            "trading_date": "2022-07-13",
+            "validator_close": 111.3535,
+            "validator_return": -0.023668431
+          },
+          {
+            "adjusted_close": 111.4875,
+            "adjustment_factor": 0.05,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2022-07-18",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.05,
+                "source_id": "E75f0e6c8145d353f2226725ab925f972bcd3f5d050116c4318aba162466c269c",
+                "symbol": "GOOGL"
+              }
+            ],
+            "raw_close": 2229.75,
+            "return_drift_bps": 0.0,
+            "series_return": -0.000506655,
+            "trading_date": "2022-06-22",
+            "validator_close": 111.4875,
+            "validator_return": -0.000506655
+          },
+          {
+            "adjusted_close": 111.544,
+            "adjustment_factor": 0.05,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2022-07-18",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.05,
+                "source_id": "E75f0e6c8145d353f2226725ab925f972bcd3f5d050116c4318aba162466c269c",
+                "symbol": "GOOGL"
+              }
+            ],
+            "raw_close": 2230.88,
+            "return_drift_bps": 0.0,
+            "series_return": 0.040250074,
+            "trading_date": "2022-06-21",
+            "validator_close": 111.544,
+            "validator_return": 0.040250074
+          },
+          {
+            "adjusted_close": 111.7015,
+            "adjustment_factor": 0.05,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2022-07-18",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.05,
+                "source_id": "E75f0e6c8145d353f2226725ab925f972bcd3f5d050116c4318aba162466c269c",
+                "symbol": "GOOGL"
+              }
+            ],
+            "raw_close": 2234.03,
+            "return_drift_bps": 0.0,
+            "series_return": -0.002735699,
+            "trading_date": "2022-06-29",
+            "validator_close": 111.7015,
+            "validator_return": -0.002735699
+          },
+          {
+            "adjusted_close": 111.7775,
+            "adjustment_factor": 0.05,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2022-07-18",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.05,
+                "source_id": "E75f0e6c8145d353f2226725ab925f972bcd3f5d050116c4318aba162466c269c",
+                "symbol": "GOOGL"
+              }
+            ],
+            "raw_close": 2235.55,
+            "return_drift_bps": 0.0,
+            "series_return": 0.012694582,
+            "trading_date": "2022-07-15",
+            "validator_close": 111.7775,
+            "validator_return": 0.012694582
+          },
+          {
+            "adjusted_close": 112.0075,
+            "adjustment_factor": 0.05,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2022-07-18",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.05,
+                "source_id": "E75f0e6c8145d353f2226725ab925f972bcd3f5d050116c4318aba162466c269c",
+                "symbol": "GOOGL"
+              }
+            ],
+            "raw_close": 2240.15,
+            "return_drift_bps": 0.0,
+            "series_return": -0.033587982,
+            "trading_date": "2022-06-28",
+            "validator_close": 112.0075,
+            "validator_return": -0.033587982
+          },
+          {
+            "adjusted_close": 112.242,
+            "adjustment_factor": 0.05,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2022-07-18",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.05,
+                "source_id": "E75f0e6c8145d353f2226725ab925f972bcd3f5d050116c4318aba162466c269c",
+                "symbol": "GOOGL"
+              }
+            ],
+            "raw_close": 2244.84,
+            "return_drift_bps": 0.0,
+            "series_return": 0.006744778,
+            "trading_date": "2022-06-23",
+            "validator_close": 112.242,
+            "validator_return": 0.006744778
+          },
+          {
+            "adjusted_close": 113.263,
+            "adjustment_factor": 0.05,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2022-07-18",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.05,
+                "source_id": "E75f0e6c8145d353f2226725ab925f972bcd3f5d050116c4318aba162466c269c",
+                "symbol": "GOOGL"
+              }
+            ],
+            "raw_close": 2265.26,
+            "return_drift_bps": 0.0,
+            "series_return": 0.040775827,
+            "trading_date": "2022-07-05",
+            "validator_close": 113.263,
+            "validator_return": 0.040775827
+          }
+        ],
+        "total_adjusted_vs_alpaca": {
+          "compared_return_days": 65,
+          "issues": [],
+          "latest_close_drift_bps": 8.03415,
+          "max_abs_close_drift_bps": 38.60574,
+          "max_abs_return_drift_bps": 31.04747,
+          "mean_abs_close_drift_bps": 8.107899,
+          "mean_abs_return_drift_bps": 4.004441,
+          "overlap_days": 66,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "alpaca_adjusted"
+        }
+      },
+      "META": {
+        "actions": {
+          "by_type": {
+            "dividend": 8,
+            "split": 0
+          },
+          "count": 8,
+          "records": [
+            {
+              "action_date": "2024-02-21",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.993063,
+              "source_id": "Ef8795a4515fee5e57f05030294218f0aac8514e8f060886876b30f6d92337cd1",
+              "symbol": "META"
+            },
+            {
+              "action_date": "2024-06-14",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.994117,
+              "source_id": "Edbd30f584bd978a9c21fa5a5f829a94f2c66b401057211d3bbf2f8b2963750b8",
+              "symbol": "META"
+            },
+            {
+              "action_date": "2024-09-16",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.995104,
+              "source_id": "Ebb8825e317cd430d0ff8210f0b8cd537870a77a983de9d499bf86ed2a7b14c4e",
+              "symbol": "META"
+            },
+            {
+              "action_date": "2024-12-16",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.996053,
+              "source_id": "Ecec59fc797c01fe342c9693ce95f194450e2ca76f632da986c5e24e4836c64cf",
+              "symbol": "META"
+            },
+            {
+              "action_date": "2025-03-14",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.996857,
+              "source_id": "E27c60f82e95faa5cf7f8c34f621350af97b3081412a630dfba702f9679f7ec36",
+              "symbol": "META"
+            },
+            {
+              "action_date": "2025-06-16",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.997743,
+              "source_id": "Ea926aaf34c234b1c844cac965e0f8a3991e2bf42f88b3f0148576cc215a31a14",
+              "symbol": "META"
+            },
+            {
+              "action_date": "2025-09-22",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.998511,
+              "source_id": "E352d0e5ee2e9f97c021ee138457b272f923a4d0ac764ba3e5a2e3aad5232772b",
+              "symbol": "META"
+            },
+            {
+              "action_date": "2025-12-15",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.999185,
+              "source_id": "Ed0078373eec1cbd866a6140a3ac026efd53d24a4f40efe20439a34a535a7dcd4",
+              "symbol": "META"
+            }
+          ]
+        },
+        "issues": [],
+        "raw_flatfiles": {
+          "day_count": 142,
+          "end_date": "2026-03-06",
+          "metadata": {
+            "end_date": "2026-03-06",
+            "files_scanned": 148,
+            "files_with_symbol": 142,
+            "flatfiles_root": "/mnt/nvme_data/shared/quant_gpt/data/massive/flatfiles/us_stocks_sip/day_aggs_v1",
+            "start_date": "2022-06-09"
+          },
+          "provider": "massive_flatfiles_raw",
+          "start_date": "2022-06-09"
+        },
+        "split_only_vs_massive_rest": {
+          "compared_return_days": 141,
+          "issues": [],
+          "latest_close_drift_bps": 0.0,
+          "max_abs_close_drift_bps": 0.0,
+          "max_abs_return_drift_bps": 0.0,
+          "mean_abs_close_drift_bps": 0.0,
+          "mean_abs_return_drift_bps": 0.0,
+          "overlap_days": 142,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "massive_rest_adjusted"
+        },
+        "status": "passed",
+        "top_rest_mismatches": [
+          {
+            "adjusted_close": 175.57,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 175.57,
+            "return_drift_bps": 0.0,
+            "series_return": -0.046897934,
+            "trading_date": "2022-06-10",
+            "validator_close": 175.57,
+            "validator_return": -0.046897934
+          },
+          {
+            "adjusted_close": 164.26,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 164.26,
+            "return_drift_bps": 0.0,
+            "series_return": -0.066587285,
+            "trading_date": "2022-06-13",
+            "validator_close": 164.26,
+            "validator_return": -0.066587285
+          },
+          {
+            "adjusted_close": 163.73,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 163.73,
+            "return_drift_bps": 0.0,
+            "series_return": -0.003231809,
+            "trading_date": "2022-06-14",
+            "validator_close": 163.73,
+            "validator_return": -0.003231809
+          },
+          {
+            "adjusted_close": 169.35,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 169.35,
+            "return_drift_bps": 0.0,
+            "series_return": 0.03374885,
+            "trading_date": "2022-06-15",
+            "validator_close": 169.35,
+            "validator_return": 0.03374885
+          },
+          {
+            "adjusted_close": 160.87,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 160.87,
+            "return_drift_bps": 0.0,
+            "series_return": -0.051370994,
+            "trading_date": "2022-06-16",
+            "validator_close": 160.87,
+            "validator_return": -0.051370994
+          },
+          {
+            "adjusted_close": 163.74,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 163.74,
+            "return_drift_bps": 0.0,
+            "series_return": 0.017683219,
+            "trading_date": "2022-06-17",
+            "validator_close": 163.74,
+            "validator_return": 0.017683219
+          },
+          {
+            "adjusted_close": 157.05,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 157.05,
+            "return_drift_bps": 0.0,
+            "series_return": -0.041715578,
+            "trading_date": "2022-06-21",
+            "validator_close": 157.05,
+            "validator_return": -0.041715578
+          },
+          {
+            "adjusted_close": 155.85,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 155.85,
+            "return_drift_bps": 0.0,
+            "series_return": -0.00767022,
+            "trading_date": "2022-06-22",
+            "validator_close": 155.85,
+            "validator_return": -0.00767022
+          },
+          {
+            "adjusted_close": 158.75,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 158.75,
+            "return_drift_bps": 0.0,
+            "series_return": 0.018436632,
+            "trading_date": "2022-06-23",
+            "validator_close": 158.75,
+            "validator_return": 0.018436632
+          },
+          {
+            "adjusted_close": 170.16,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 170.16,
+            "return_drift_bps": 0.0,
+            "series_return": 0.069408533,
+            "trading_date": "2022-06-24",
+            "validator_close": 170.16,
+            "validator_return": 0.069408533
+          }
+        ],
+        "total_adjusted_vs_alpaca": {
+          "compared_return_days": 65,
+          "issues": [],
+          "latest_close_drift_bps": 0.930521,
+          "max_abs_close_drift_bps": 20.678804,
+          "max_abs_return_drift_bps": 21.400401,
+          "mean_abs_close_drift_bps": 2.153341,
+          "mean_abs_return_drift_bps": 3.537945,
+          "overlap_days": 66,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "alpaca_adjusted"
+        }
+      },
+      "MSFT": {
+        "actions": {
+          "by_type": {
+            "dividend": 15,
+            "split": 0
+          },
+          "count": 15,
+          "records": [
+            {
+              "action_date": "2022-08-17",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.969629,
+              "source_id": "Ec61c7a412fdffd60f646202361b869ea302be23957a615b790316895416fc602",
+              "symbol": "MSFT"
+            },
+            {
+              "action_date": "2022-11-16",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.971687,
+              "source_id": "E1e9f39365baa699a74a56fd1084be8714082e90d5fe4891dd5fe28fc965c038c",
+              "symbol": "MSFT"
+            },
+            {
+              "action_date": "2023-02-15",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.974425,
+              "source_id": "E7e3329994f4ae9ba9c1062b3924ad38ef3390559c1bb2871268f0531397eb180",
+              "symbol": "MSFT"
+            },
+            {
+              "action_date": "2023-05-17",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.976866,
+              "source_id": "E5ab30221f595c9fdb5aa5ccbdc6d474738404955a86ed4f0960a04feb5da9222",
+              "symbol": "MSFT"
+            },
+            {
+              "action_date": "2023-08-16",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.979001,
+              "source_id": "E0d18b51ab7eaa7399bf199f9e9288f0d5bdad38aaf10a146f378682a993c7cd1",
+              "symbol": "MSFT"
+            },
+            {
+              "action_date": "2023-11-15",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.981074,
+              "source_id": "E5f2084116a8656dbf17afede4f20f089c59a72394ea0aaebabf5852bc127cef5",
+              "symbol": "MSFT"
+            },
+            {
+              "action_date": "2024-02-14",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.983065,
+              "source_id": "Efc39ba5de8c72013c7715c6c6f1b9b96ee04b5167397d227b9d7b25cef52f3c3",
+              "symbol": "MSFT"
+            },
+            {
+              "action_date": "2024-05-15",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.984883,
+              "source_id": "E4d5ec44e3af6d9c003c795a6a865945539467c8337621b958aabee1727b94d22",
+              "symbol": "MSFT"
+            },
+            {
+              "action_date": "2024-08-15",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.98666,
+              "source_id": "E86c03763df7f6fd3ff98aaa5f589bec9656ec368f02c66f9d1fe23b7f852b495",
+              "symbol": "MSFT"
+            },
+            {
+              "action_date": "2024-11-21",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.988438,
+              "source_id": "Ef6b22a952d02416181303e714b00cb2a525188b4c145e99c594ac18fd66c651c",
+              "symbol": "MSFT"
+            },
+            {
+              "action_date": "2025-02-20",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.990417,
+              "source_id": "Ecef5e6c1102feab369ba58fd3711d50321893d7fd7aabbc10112c621327476f9",
+              "symbol": "MSFT"
+            },
+            {
+              "action_date": "2025-05-15",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.992403,
+              "source_id": "Ec79a97079e6a62876fdb04c4c79b9bb34931fe1b368849751b456de1dae967cb",
+              "symbol": "MSFT"
+            },
+            {
+              "action_date": "2025-08-21",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.994224,
+              "source_id": "Eb7f1a1d0f092274a19e0db54c6af542355d01c509a1e47e88588a5c5b8133261",
+              "symbol": "MSFT"
+            },
+            {
+              "action_date": "2025-11-20",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.995859,
+              "source_id": "Ee77348f0a7bef6d64dcf92fc50a5bf65e2caa4ba5d0a8f571286a24302ce1fbe",
+              "symbol": "MSFT"
+            },
+            {
+              "action_date": "2026-02-19",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.997723,
+              "source_id": "E27e88cd9e39b063ba42b093aee82b4af3a226e1805b91a8793134b7bdd0103e0",
+              "symbol": "MSFT"
+            }
+          ]
+        },
+        "issues": [],
+        "raw_flatfiles": {
+          "day_count": 148,
+          "end_date": "2026-03-06",
+          "metadata": {
+            "end_date": "2026-03-06",
+            "files_scanned": 148,
+            "files_with_symbol": 148,
+            "flatfiles_root": "/mnt/nvme_data/shared/quant_gpt/data/massive/flatfiles/us_stocks_sip/day_aggs_v1",
+            "start_date": "2022-06-01"
+          },
+          "provider": "massive_flatfiles_raw",
+          "start_date": "2022-06-01"
+        },
+        "split_only_vs_massive_rest": {
+          "compared_return_days": 147,
+          "issues": [],
+          "latest_close_drift_bps": 0.0,
+          "max_abs_close_drift_bps": 0.0,
+          "max_abs_return_drift_bps": 0.0,
+          "mean_abs_close_drift_bps": 0.0,
+          "mean_abs_return_drift_bps": 0.0,
+          "overlap_days": 148,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "massive_rest_adjusted"
+        },
+        "status": "passed",
+        "top_rest_mismatches": [
+          {
+            "adjusted_close": 274.58,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 274.58,
+            "return_drift_bps": 0.0,
+            "series_return": 0.007897664,
+            "trading_date": "2022-06-02",
+            "validator_close": 274.58,
+            "validator_return": 0.007897664
+          },
+          {
+            "adjusted_close": 270.02,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 270.02,
+            "return_drift_bps": 0.0,
+            "series_return": -0.016746627,
+            "trading_date": "2022-06-03",
+            "validator_close": 270.02,
+            "validator_return": -0.016746627
+          },
+          {
+            "adjusted_close": 268.75,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 268.75,
+            "return_drift_bps": 0.0,
+            "series_return": -0.004714451,
+            "trading_date": "2022-06-06",
+            "validator_close": 268.75,
+            "validator_return": -0.004714451
+          },
+          {
+            "adjusted_close": 272.5,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 272.5,
+            "return_drift_bps": 0.0,
+            "series_return": 0.013857035,
+            "trading_date": "2022-06-07",
+            "validator_close": 272.5,
+            "validator_return": 0.013857035
+          },
+          {
+            "adjusted_close": 270.41,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 270.41,
+            "return_drift_bps": 0.0,
+            "series_return": -0.007699288,
+            "trading_date": "2022-06-08",
+            "validator_close": 270.41,
+            "validator_return": -0.007699288
+          },
+          {
+            "adjusted_close": 264.79,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 264.79,
+            "return_drift_bps": 0.0,
+            "series_return": -0.021002267,
+            "trading_date": "2022-06-09",
+            "validator_close": 264.79,
+            "validator_return": -0.021002267
+          },
+          {
+            "adjusted_close": 252.99,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 252.99,
+            "return_drift_bps": 0.0,
+            "series_return": -0.045587097,
+            "trading_date": "2022-06-10",
+            "validator_close": 252.99,
+            "validator_return": -0.045587097
+          },
+          {
+            "adjusted_close": 242.26,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 242.26,
+            "return_drift_bps": 0.0,
+            "series_return": -0.043338433,
+            "trading_date": "2022-06-13",
+            "validator_close": 242.26,
+            "validator_return": -0.043338433
+          },
+          {
+            "adjusted_close": 244.49,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 244.49,
+            "return_drift_bps": 0.0,
+            "series_return": 0.009162879,
+            "trading_date": "2022-06-14",
+            "validator_close": 244.49,
+            "validator_return": 0.009162879
+          },
+          {
+            "adjusted_close": 251.76,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 251.76,
+            "return_drift_bps": 0.0,
+            "series_return": 0.029301844,
+            "trading_date": "2022-06-15",
+            "validator_close": 251.76,
+            "validator_return": 0.029301844
+          }
+        ],
+        "total_adjusted_vs_alpaca": {
+          "compared_return_days": 65,
+          "issues": [],
+          "latest_close_drift_bps": 5.871991,
+          "max_abs_close_drift_bps": 8.861234,
+          "max_abs_return_drift_bps": 8.996145,
+          "mean_abs_close_drift_bps": 2.312695,
+          "mean_abs_return_drift_bps": 2.922172,
+          "overlap_days": 66,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "alpaca_adjusted"
+        }
+      },
+      "NVDA": {
+        "actions": {
+          "by_type": {
+            "dividend": 15,
+            "split": 1
+          },
+          "count": 16,
+          "records": [
+            {
+              "action_date": "2022-06-08",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.998237,
+              "source_id": "E1aa7c1188561cf7f1142b4bf007bae4d919d69c88a298e2298e6537bf5fed8c7",
+              "symbol": "NVDA"
+            },
+            {
+              "action_date": "2022-09-07",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.998448,
+              "source_id": "Ea31621bc6fa6b570fafbf8efe3f05c7f8edbec90e7bb1cc5062872de42273ef7",
+              "symbol": "NVDA"
+            },
+            {
+              "action_date": "2022-11-30",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.998744,
+              "source_id": "Ee0c141be5cd2f336c44f7a7989be80b75a142632538579e1a0126b5818c57d64",
+              "symbol": "NVDA"
+            },
+            {
+              "action_date": "2023-03-07",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.999,
+              "source_id": "Ee04b0320051622a68d0eb929592528842bac2c37e60498d6490c4fdc67900ae0",
+              "symbol": "NVDA"
+            },
+            {
+              "action_date": "2023-06-07",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.99917,
+              "source_id": "E9712dbfd03c8439c3d6b6336739b60836d7fba78d3f1962b271f4294f8a26145",
+              "symbol": "NVDA"
+            },
+            {
+              "action_date": "2023-09-06",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.999273,
+              "source_id": "E9d1274d083eb00724a8f513b843d3af200baf18f4f888e002c3e1f28881b2b60",
+              "symbol": "NVDA"
+            },
+            {
+              "action_date": "2023-12-05",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.999355,
+              "source_id": "E35f0ff6fc910fd5a1a2d4266a2be8b1fc4d8ef0e75b0d15b97298dc7dfcbb8a3",
+              "symbol": "NVDA"
+            },
+            {
+              "action_date": "2024-03-05",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.999443,
+              "source_id": "E3a0a45efc26f963c74b7bff61f60a8b5099be8d8d9aa5e787a4723f1feedffb2",
+              "symbol": "NVDA"
+            },
+            {
+              "action_date": "2024-06-10",
+              "action_type": "split",
+              "historical_adjustment_factor": 0.1,
+              "source_id": "Ea86fa28faba275487714f7b3f199ee4a04d2c271b1471648fbd945397a6008ba",
+              "symbol": "NVDA"
+            },
+            {
+              "action_date": "2024-06-11",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.99949,
+              "source_id": "E0c7e22672582573cf4c7e15d316427ac4de3e752730baa651e16184f832746e9",
+              "symbol": "NVDA"
+            },
+            {
+              "action_date": "2024-09-12",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.999572,
+              "source_id": "E5c9099ae76152b9bc71b4080eefd6ff989a02eb9fe8767038d56f0d3ae998e40",
+              "symbol": "NVDA"
+            },
+            {
+              "action_date": "2024-12-05",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.999658,
+              "source_id": "E8e5976e646ac83b166640ba4075e5c11c7b4c6e59ea6c554d4d0a919c8f697a9",
+              "symbol": "NVDA"
+            },
+            {
+              "action_date": "2025-03-12",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.999727,
+              "source_id": "Ed6811f8b0cffe52d382c2dd8b8b48a572eb406c4cf8ad00067555e4ab41aa794",
+              "symbol": "NVDA"
+            },
+            {
+              "action_date": "2025-06-11",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.999818,
+              "source_id": "Eb8ca1f81b8095c73fbb33936ddacbd8c3b428e77967860a5bed3739342306830",
+              "symbol": "NVDA"
+            },
+            {
+              "action_date": "2025-09-11",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.999888,
+              "source_id": "E11888d62eaf4270e9151b9bd3dd47df8ed765f52012355dcbcaed00cc7295258",
+              "symbol": "NVDA"
+            },
+            {
+              "action_date": "2025-12-04",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.999944,
+              "source_id": "E655af2c3f386ac192ab84ac20b960bf44dbc4683e47cbcd834e8c7d31eecc5d0",
+              "symbol": "NVDA"
+            }
+          ]
+        },
+        "issues": [],
+        "raw_flatfiles": {
+          "day_count": 148,
+          "end_date": "2026-03-06",
+          "metadata": {
+            "end_date": "2026-03-06",
+            "files_scanned": 148,
+            "files_with_symbol": 148,
+            "flatfiles_root": "/mnt/nvme_data/shared/quant_gpt/data/massive/flatfiles/us_stocks_sip/day_aggs_v1",
+            "start_date": "2022-06-01"
+          },
+          "provider": "massive_flatfiles_raw",
+          "start_date": "2022-06-01"
+        },
+        "split_only_vs_massive_rest": {
+          "compared_return_days": 147,
+          "issues": [],
+          "latest_close_drift_bps": 0.0,
+          "max_abs_close_drift_bps": 0.0,
+          "max_abs_return_drift_bps": 0.0,
+          "mean_abs_close_drift_bps": 0.0,
+          "mean_abs_return_drift_bps": 0.0,
+          "overlap_days": 148,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "massive_rest_adjusted"
+        },
+        "status": "passed",
+        "top_rest_mismatches": [
+          {
+            "adjusted_close": 17.79,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-06-10",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ea86fa28faba275487714f7b3f199ee4a04d2c271b1471648fbd945397a6008ba",
+                "symbol": "NVDA"
+              }
+            ],
+            "raw_close": 177.9,
+            "return_drift_bps": 0.0,
+            "series_return": 0.073278118,
+            "trading_date": "2022-07-27",
+            "validator_close": 17.79,
+            "validator_return": 0.073278118
+          },
+          {
+            "adjusted_close": 14.964,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-06-10",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ea86fa28faba275487714f7b3f199ee4a04d2c271b1471648fbd945397a6008ba",
+                "symbol": "NVDA"
+              }
+            ],
+            "raw_close": 149.64,
+            "return_drift_bps": 0.0,
+            "series_return": 0.029913717,
+            "trading_date": "2022-07-05",
+            "validator_close": 14.964,
+            "validator_return": 0.029913717
+          },
+          {
+            "adjusted_close": 120.888,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-06-10",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ea86fa28faba275487714f7b3f199ee4a04d2c271b1471648fbd945397a6008ba",
+                "symbol": "NVDA"
+              }
+            ],
+            "raw_close": 1208.88,
+            "return_drift_bps": 0.0,
+            "series_return": -0.000909519,
+            "trading_date": "2024-06-07",
+            "validator_close": 120.888,
+            "validator_return": -0.000909519
+          },
+          {
+            "adjusted_close": 15.13,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-06-10",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ea86fa28faba275487714f7b3f199ee4a04d2c271b1471648fbd945397a6008ba",
+                "symbol": "NVDA"
+              }
+            ],
+            "raw_close": 151.3,
+            "return_drift_bps": 0.0,
+            "series_return": 0.011032211,
+            "trading_date": "2022-07-06",
+            "validator_close": 15.13,
+            "validator_return": 0.011032211
+          },
+          {
+            "adjusted_close": 15.152,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-06-10",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ea86fa28faba275487714f7b3f199ee4a04d2c271b1471648fbd945397a6008ba",
+                "symbol": "NVDA"
+              }
+            ],
+            "raw_close": 151.52,
+            "return_drift_bps": 0.0,
+            "series_return": -0.044279579,
+            "trading_date": "2022-07-11",
+            "validator_close": 15.152,
+            "validator_return": -0.044279579
+          },
+          {
+            "adjusted_close": 122.44,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-06-10",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ea86fa28faba275487714f7b3f199ee4a04d2c271b1471648fbd945397a6008ba",
+                "symbol": "NVDA"
+              }
+            ],
+            "raw_close": 1224.4,
+            "return_drift_bps": 0.0,
+            "series_return": 0.05027076,
+            "trading_date": "2024-06-05",
+            "validator_close": 122.44,
+            "validator_return": 0.05027076
+          },
+          {
+            "adjusted_close": 15.601,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-06-10",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ea86fa28faba275487714f7b3f199ee4a04d2c271b1471648fbd945397a6008ba",
+                "symbol": "NVDA"
+              }
+            ],
+            "raw_close": 156.01,
+            "return_drift_bps": 0.0,
+            "series_return": -0.057660392,
+            "trading_date": "2022-06-16",
+            "validator_close": 15.601,
+            "validator_return": -0.057660392
+          },
+          {
+            "adjusted_close": 15.836,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-06-10",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ea86fa28faba275487714f7b3f199ee4a04d2c271b1471648fbd945397a6008ba",
+                "symbol": "NVDA"
+              }
+            ],
+            "raw_close": 158.36,
+            "return_drift_bps": 0.0,
+            "series_return": 0.012006624,
+            "trading_date": "2022-06-14",
+            "validator_close": 15.836,
+            "validator_return": 0.012006624
+          },
+          {
+            "adjusted_close": 15.838,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-06-10",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ea86fa28faba275487714f7b3f199ee4a04d2c271b1471648fbd945397a6008ba",
+                "symbol": "NVDA"
+              }
+            ],
+            "raw_close": 158.38,
+            "return_drift_bps": 0.0,
+            "series_return": -0.001261989,
+            "trading_date": "2022-07-08",
+            "validator_close": 15.838,
+            "validator_return": -0.001261989
+          },
+          {
+            "adjusted_close": 15.858,
+            "adjustment_factor": 0.1,
+            "close_drift_bps": 0.0,
+            "future_actions": [
+              {
+                "action_date": "2024-06-10",
+                "action_type": "split",
+                "historical_adjustment_factor": 0.1,
+                "source_id": "Ea86fa28faba275487714f7b3f199ee4a04d2c271b1471648fbd945397a6008ba",
+                "symbol": "NVDA"
+              }
+            ],
+            "raw_close": 158.58,
+            "return_drift_bps": 0.0,
+            "series_return": 0.046994577,
+            "trading_date": "2022-07-07",
+            "validator_close": 15.858,
+            "validator_return": 0.046994577
+          }
+        ],
+        "total_adjusted_vs_alpaca": {
+          "compared_return_days": 65,
+          "issues": [],
+          "latest_close_drift_bps": 6.752954,
+          "max_abs_close_drift_bps": 13.787469,
+          "max_abs_return_drift_bps": 15.4197,
+          "mean_abs_close_drift_bps": 3.288091,
+          "mean_abs_return_drift_bps": 4.520235,
+          "overlap_days": 66,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "alpaca_adjusted"
+        }
+      },
+      "QCOM": {
+        "actions": {
+          "by_type": {
+            "dividend": 16,
+            "split": 0
+          },
+          "count": 16,
+          "records": [
+            {
+              "action_date": "2022-06-01",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.912403,
+              "source_id": "Ec49637ce0619f950f0acfcc8ea302fafc9b4c1c52d03e8485e43dece7d2b933d",
+              "symbol": "QCOM"
+            },
+            {
+              "action_date": "2022-08-31",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.917206,
+              "source_id": "E49047a66c1a2fa05e99903d8115f10b70b786e42c3b57a6083763dc19e10a6a5",
+              "symbol": "QCOM"
+            },
+            {
+              "action_date": "2022-11-30",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.922352,
+              "source_id": "Ec6f505620038af5a8df475364323735caa70d66e2969bb6ccee546f2edaa5a4d",
+              "symbol": "QCOM"
+            },
+            {
+              "action_date": "2023-03-01",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.928233,
+              "source_id": "E2ffaea3dd0a69e496471351a4df02bf88f58211ec8866442c9c449c2517acfb9",
+              "symbol": "QCOM"
+            },
+            {
+              "action_date": "2023-05-31",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.933903,
+              "source_id": "Ef39d103d2fed43efa7bb3ab959c91e6bdada3ecb41172667533e35fa94c99a67",
+              "symbol": "QCOM"
+            },
+            {
+              "action_date": "2023-08-30",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.940389,
+              "source_id": "E919aa1661a65809b53ffa20f2e6619b6df0c64e8f9321cbc7fee88e226e221f8",
+              "symbol": "QCOM"
+            },
+            {
+              "action_date": "2023-11-29",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.947048,
+              "source_id": "E25cc98fd0106ac5b214b9e0b2e310b0e4e601a7b7824f6b04c6cc0db227133b6",
+              "symbol": "QCOM"
+            },
+            {
+              "action_date": "2024-02-28",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.953071,
+              "source_id": "Ec3ac1634c4c4547400df7ccd8966746d1e0335cb49e4a767a3c881408b75610e",
+              "symbol": "QCOM"
+            },
+            {
+              "action_date": "2024-05-30",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.957912,
+              "source_id": "E6146944eb9e913044e51378411dc4e451440e596a98a1a84821151caa6cbd50e",
+              "symbol": "QCOM"
+            },
+            {
+              "action_date": "2024-09-05",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.961837,
+              "source_id": "E355e58a85966070906055ea5388c7088e69733c2d6375f71a180eaadbd902a51",
+              "symbol": "QCOM"
+            },
+            {
+              "action_date": "2024-12-05",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.966808,
+              "source_id": "E23c9b342b5b1d86ba86110c000fff37ad006c2f46420defa15c3143731377768",
+              "symbol": "QCOM"
+            },
+            {
+              "action_date": "2025-03-06",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.971865,
+              "source_id": "E3d211afdc051f84669f00820fe514e53705600040c38ce376f688ed257109d3a",
+              "symbol": "QCOM"
+            },
+            {
+              "action_date": "2025-06-05",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.977106,
+              "source_id": "E5e9b98e1ac6ebe7dbe3be6dad34acbc4f3f1bf98e2cb04b95e4a2c0af6b04785",
+              "symbol": "QCOM"
+            },
+            {
+              "action_date": "2025-09-04",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.982975,
+              "source_id": "Eda6e9f3103d6c52a3a6ec62b52dfd4ef7935d94f31821e71d924d8e1855c932d",
+              "symbol": "QCOM"
+            },
+            {
+              "action_date": "2025-12-04",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.988569,
+              "source_id": "E6e06969716ff5df921048a29cef905dc9fe4a9d4eabb19f0c852c8812c837314",
+              "symbol": "QCOM"
+            },
+            {
+              "action_date": "2026-03-05",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.993621,
+              "source_id": "E5ca0375ffbbe5522536b8013a4b30ff20ae2ed2d44ed5b95017beda72c16affc",
+              "symbol": "QCOM"
+            }
+          ]
+        },
+        "issues": [
+          "alpaca:max_close_drift_bps:66.2337>50.0000"
+        ],
+        "raw_flatfiles": {
+          "day_count": 148,
+          "end_date": "2026-03-06",
+          "metadata": {
+            "end_date": "2026-03-06",
+            "files_scanned": 148,
+            "files_with_symbol": 148,
+            "flatfiles_root": "/mnt/nvme_data/shared/quant_gpt/data/massive/flatfiles/us_stocks_sip/day_aggs_v1",
+            "start_date": "2022-06-01"
+          },
+          "provider": "massive_flatfiles_raw",
+          "start_date": "2022-06-01"
+        },
+        "split_only_vs_massive_rest": {
+          "compared_return_days": 147,
+          "issues": [],
+          "latest_close_drift_bps": 0.0,
+          "max_abs_close_drift_bps": 0.0,
+          "max_abs_return_drift_bps": 0.0,
+          "mean_abs_close_drift_bps": 0.0,
+          "mean_abs_return_drift_bps": 0.0,
+          "overlap_days": 148,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "massive_rest_adjusted"
+        },
+        "status": "failed",
+        "top_rest_mismatches": [
+          {
+            "adjusted_close": 146.2,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 146.2,
+            "return_drift_bps": 0.0,
+            "series_return": 0.043190278,
+            "trading_date": "2022-06-02",
+            "validator_close": 146.2,
+            "validator_return": 0.043190278
+          },
+          {
+            "adjusted_close": 141.22,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 141.22,
+            "return_drift_bps": 0.0,
+            "series_return": -0.034656589,
+            "trading_date": "2022-06-03",
+            "validator_close": 141.22,
+            "validator_return": -0.034656589
+          },
+          {
+            "adjusted_close": 140.44,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 140.44,
+            "return_drift_bps": 0.0,
+            "series_return": -0.005538607,
+            "trading_date": "2022-06-06",
+            "validator_close": 140.44,
+            "validator_return": -0.005538607
+          },
+          {
+            "adjusted_close": 141.89,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 141.89,
+            "return_drift_bps": 0.0,
+            "series_return": 0.010271758,
+            "trading_date": "2022-06-07",
+            "validator_close": 141.89,
+            "validator_return": 0.010271758
+          },
+          {
+            "adjusted_close": 138.96,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 138.96,
+            "return_drift_bps": 0.0,
+            "series_return": -0.020865988,
+            "trading_date": "2022-06-08",
+            "validator_close": 138.96,
+            "validator_return": -0.020865988
+          },
+          {
+            "adjusted_close": 136.71,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 136.71,
+            "return_drift_bps": 0.0,
+            "series_return": -0.016324228,
+            "trading_date": "2022-06-09",
+            "validator_close": 136.71,
+            "validator_return": -0.016324228
+          },
+          {
+            "adjusted_close": 133.2,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 133.2,
+            "return_drift_bps": 0.0,
+            "series_return": -0.026010136,
+            "trading_date": "2022-06-10",
+            "validator_close": 133.2,
+            "validator_return": -0.026010136
+          },
+          {
+            "adjusted_close": 128.66,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 128.66,
+            "return_drift_bps": 0.0,
+            "series_return": -0.034678492,
+            "trading_date": "2022-06-13",
+            "validator_close": 128.66,
+            "validator_return": -0.034678492
+          },
+          {
+            "adjusted_close": 130.26,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 130.26,
+            "return_drift_bps": 0.0,
+            "series_return": 0.012359187,
+            "trading_date": "2022-06-14",
+            "validator_close": 130.26,
+            "validator_return": 0.012359187
+          },
+          {
+            "adjusted_close": 131.03,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 131.03,
+            "return_drift_bps": 0.0,
+            "series_return": 0.005893851,
+            "trading_date": "2022-06-15",
+            "validator_close": 131.03,
+            "validator_return": 0.005893851
+          }
+        ],
+        "total_adjusted_vs_alpaca": {
+          "compared_return_days": 65,
+          "issues": [
+            "max_close_drift_bps:66.2337>50.0000"
+          ],
+          "latest_close_drift_bps": 2.580074,
+          "max_abs_close_drift_bps": 66.233702,
+          "max_abs_return_drift_bps": 64.516075,
+          "mean_abs_close_drift_bps": 4.722495,
+          "mean_abs_return_drift_bps": 3.965823,
+          "overlap_days": 66,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "failed",
+          "validator": "alpaca_adjusted"
+        }
+      },
+      "TSM": {
+        "actions": {
+          "by_type": {
+            "dividend": 15,
+            "split": 0
+          },
+          "count": 15,
+          "records": [
+            {
+              "action_date": "2022-06-16",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.939358,
+              "source_id": "Eb3cebe1c140286068e072370fe66614dee40db95c8130fe96198edf0380ddd23",
+              "symbol": "TSM"
+            },
+            {
+              "action_date": "2022-09-15",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.944248,
+              "source_id": "E579dfbcd4749b2d08f11b93b2409324e06a1f31d9eb092ee87c693b491d2d582",
+              "symbol": "TSM"
+            },
+            {
+              "action_date": "2022-12-15",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.949432,
+              "source_id": "E8f6f8ff286142e166b0bbb87793cb2b84386680d618b8618b33e113caf77e3b8",
+              "symbol": "TSM"
+            },
+            {
+              "action_date": "2023-03-16",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.954769,
+              "source_id": "E09610fad575ec72fe62a92d16cbf9b9e9e6aae4aa4ee1ccaddb7d972ba0656c3",
+              "symbol": "TSM"
+            },
+            {
+              "action_date": "2023-06-15",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.959737,
+              "source_id": "E4613cd543b9ddda5994c42ce0ef98138983300f8a45e1007767a460e6bf93df3",
+              "symbol": "TSM"
+            },
+            {
+              "action_date": "2023-09-14",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.963675,
+              "source_id": "Ecea434f78a84db68c8b302aad894e443113594553280abce9571d7e11181226e",
+              "symbol": "TSM"
+            },
+            {
+              "action_date": "2023-12-14",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.968614,
+              "source_id": "E5bf79a8e40607fa880ea85e4e61aec36bebfdbdf87891d1b9dc61cf87ffd312e",
+              "symbol": "TSM"
+            },
+            {
+              "action_date": "2024-03-18",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.973219,
+              "source_id": "Ed750aae2e390df774d872d90824f7eac989d318622865ae4c2f046e22f1bc99b",
+              "symbol": "TSM"
+            },
+            {
+              "action_date": "2024-06-13",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.977111,
+              "source_id": "Eeff6c0362922442600cba221dfb0fa464b5f05eb358b1100653bb879a756e0ce",
+              "symbol": "TSM"
+            },
+            {
+              "action_date": "2024-09-12",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.980171,
+              "source_id": "Eb549c9f8ed5a3e96fc90af939aff5d52864acc1d88b82825a8bff49e7c3d4581",
+              "symbol": "TSM"
+            },
+            {
+              "action_date": "2024-12-12",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.983782,
+              "source_id": "E142ce9ccd5e723669a5e92ca8bd9aafc269a1646d0bb1e33439fb2793d8f457b",
+              "symbol": "TSM"
+            },
+            {
+              "action_date": "2025-03-18",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.986865,
+              "source_id": "Ec2e1438ba5b06ee914f968d38c057fde51f13aaac913e1d4549ae238d0b84645",
+              "symbol": "TSM"
+            },
+            {
+              "action_date": "2025-06-12",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.990675,
+              "source_id": "Ebea910bac72d8269e6b3a43c7bcba58fa8bc7ddf4a4a00ce6074c9d1450748e7",
+              "symbol": "TSM"
+            },
+            {
+              "action_date": "2025-09-16",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.994299,
+              "source_id": "Eb95a585714c041b57fefff38e7e963f4046bcdb716688808b189afecef75a708",
+              "symbol": "TSM"
+            },
+            {
+              "action_date": "2025-12-11",
+              "action_type": "dividend",
+              "historical_adjustment_factor": 0.997435,
+              "source_id": "Ec864881a312c38a65c4006babdee5996d00de1038592ae386b0e61e69f612c3f",
+              "symbol": "TSM"
+            }
+          ]
+        },
+        "issues": [],
+        "raw_flatfiles": {
+          "day_count": 148,
+          "end_date": "2026-03-06",
+          "metadata": {
+            "end_date": "2026-03-06",
+            "files_scanned": 148,
+            "files_with_symbol": 148,
+            "flatfiles_root": "/mnt/nvme_data/shared/quant_gpt/data/massive/flatfiles/us_stocks_sip/day_aggs_v1",
+            "start_date": "2022-06-01"
+          },
+          "provider": "massive_flatfiles_raw",
+          "start_date": "2022-06-01"
+        },
+        "split_only_vs_massive_rest": {
+          "compared_return_days": 147,
+          "issues": [],
+          "latest_close_drift_bps": 0.0,
+          "max_abs_close_drift_bps": 0.0,
+          "max_abs_return_drift_bps": 0.0,
+          "mean_abs_close_drift_bps": 0.0,
+          "mean_abs_return_drift_bps": 0.0,
+          "overlap_days": 148,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "massive_rest_adjusted"
+        },
+        "status": "passed",
+        "top_rest_mismatches": [
+          {
+            "adjusted_close": 96.34,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 96.34,
+            "return_drift_bps": 0.0,
+            "series_return": 0.016641757,
+            "trading_date": "2022-06-02",
+            "validator_close": 96.34,
+            "validator_return": 0.016641757
+          },
+          {
+            "adjusted_close": 93.77,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 93.77,
+            "return_drift_bps": 0.0,
+            "series_return": -0.027038626,
+            "trading_date": "2022-06-03",
+            "validator_close": 93.77,
+            "validator_return": -0.027038626
+          },
+          {
+            "adjusted_close": 93.11,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 93.11,
+            "return_drift_bps": 0.0,
+            "series_return": -0.007063386,
+            "trading_date": "2022-06-06",
+            "validator_close": 93.11,
+            "validator_return": -0.007063386
+          },
+          {
+            "adjusted_close": 93.84,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 93.84,
+            "return_drift_bps": 0.0,
+            "series_return": 0.007809614,
+            "trading_date": "2022-06-07",
+            "validator_close": 93.84,
+            "validator_return": 0.007809614
+          },
+          {
+            "adjusted_close": 93.47,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 93.47,
+            "return_drift_bps": 0.0,
+            "series_return": -0.003950675,
+            "trading_date": "2022-06-08",
+            "validator_close": 93.47,
+            "validator_return": -0.003950675
+          },
+          {
+            "adjusted_close": 90.85,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 90.85,
+            "return_drift_bps": 0.0,
+            "series_return": -0.028430734,
+            "trading_date": "2022-06-09",
+            "validator_close": 90.85,
+            "validator_return": -0.028430734
+          },
+          {
+            "adjusted_close": 88.68,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 88.68,
+            "return_drift_bps": 0.0,
+            "series_return": -0.02417541,
+            "trading_date": "2022-06-10",
+            "validator_close": 88.68,
+            "validator_return": -0.02417541
+          },
+          {
+            "adjusted_close": 85.55,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 85.55,
+            "return_drift_bps": 0.0,
+            "series_return": -0.035933384,
+            "trading_date": "2022-06-13",
+            "validator_close": 85.55,
+            "validator_return": -0.035933384
+          },
+          {
+            "adjusted_close": 87.19,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 87.19,
+            "return_drift_bps": 0.0,
+            "series_return": 0.018988645,
+            "trading_date": "2022-06-14",
+            "validator_close": 87.19,
+            "validator_return": 0.018988645
+          },
+          {
+            "adjusted_close": 89.13,
+            "adjustment_factor": 1.0,
+            "close_drift_bps": 0.0,
+            "future_actions": [],
+            "raw_close": 89.13,
+            "return_drift_bps": 0.0,
+            "series_return": 0.022006333,
+            "trading_date": "2022-06-15",
+            "validator_close": 89.13,
+            "validator_return": 0.022006333
+          }
+        ],
+        "total_adjusted_vs_alpaca": {
+          "compared_return_days": 65,
+          "issues": [],
+          "latest_close_drift_bps": 0.737757,
+          "max_abs_close_drift_bps": 11.494047,
+          "max_abs_return_drift_bps": 7.494243,
+          "mean_abs_close_drift_bps": 2.351266,
+          "mean_abs_return_drift_bps": 2.56293,
+          "overlap_days": 66,
+          "provider": "massive_flatfiles_adjusted",
+          "status": "passed",
+          "validator": "alpaca_adjusted"
+        }
+      }
+    },
+    "symbols": [
+      "AAPL",
+      "MSFT",
+      "NVDA",
+      "AVGO",
+      "AMD",
+      "QCOM",
+      "META",
+      "GOOGL",
+      "AMZN",
+      "TSM",
+      "ADBE",
+      "CRM"
+    ]
+  }
+}

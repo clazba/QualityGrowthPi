@@ -1,6 +1,9 @@
 """Unit tests for Alpha Vantage normalization paths."""
 
+import pytest
+
 from src.provider_adapters.alpha_vantage_adapter import AlphaVantageAdapter, AlphaVantageNewsProvider
+from src.provider_adapters.base import ProviderError
 
 
 def test_alpha_vantage_daily_adjusted_payload_normalizes_adjusted_close() -> None:
@@ -58,3 +61,25 @@ def test_alpha_vantage_news_normalizes_feed_records() -> None:
     assert len(events) == 1
     assert events[0].symbol == "AAPL"
     assert events[0].source == "Alpha Vantage"
+
+
+def test_alpha_vantage_request_surfaces_throttle_note() -> None:
+    adapter = AlphaVantageAdapter(api_key="test-key")
+
+    class FakeResponse:
+        def raise_for_status(self) -> None:
+            return None
+
+        @staticmethod
+        def json() -> dict[str, str]:
+            return {"Note": "API call frequency exceeded"}
+
+    class FakeSession:
+        @staticmethod
+        def get(*args, **kwargs) -> FakeResponse:  # type: ignore[no-untyped-def]
+            return FakeResponse()
+
+    adapter.session = FakeSession()
+
+    with pytest.raises(ProviderError, match="Alpha Vantage throttled"):
+        adapter._request({"function": "TIME_SERIES_DAILY_ADJUSTED", "symbol": "AAPL"})

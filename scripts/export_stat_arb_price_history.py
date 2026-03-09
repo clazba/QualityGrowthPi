@@ -6,7 +6,9 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 import sys
+from datetime import UTC, datetime
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
@@ -15,7 +17,9 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.stat_arb.data_export import (
     ProviderExportError,
     export_aligned_price_history,
+    export_massive_flatfiles_price_history,
     export_provider_validated_price_history,
+    set_progress_callback,
     write_price_history_json,
 )
 from src.strategy_settings import load_stat_arb_settings
@@ -25,14 +29,19 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--source-mode",
-        choices=("providers", "lean"),
+        choices=("providers", "lean", "massive_flatfiles"),
         default="providers",
-        help="Export from provider-backed daily bars (default) or legacy LEAN local files",
+        help="Export from provider-backed daily bars (default), validated Massive flat files, or legacy LEAN local files",
     )
     parser.add_argument(
         "--lean-data-root",
         default=str(PROJECT_ROOT / "data" / "lean"),
         help="Root of LEAN-style local data, used only when --source-mode=lean",
+    )
+    parser.add_argument(
+        "--flatfiles-root",
+        default=str(PROJECT_ROOT / "data" / "massive" / "flatfiles" / "us_stocks_sip" / "day_aggs_v1"),
+        help="Root of downloaded Massive day aggregate flat files, used only when --source-mode=massive_flatfiles",
     )
     parser.add_argument(
         "--symbols",
@@ -118,7 +127,34 @@ def _parse_args() -> argparse.Namespace:
         "--diagnostics-output",
         help="Optional JSON path for exporter diagnostics when provider-backed validation fails",
     )
+    parser.add_argument(
+        "--validation-report",
+        default="",
+        help="Optional JSON path to a previously passed Massive validation report; used only when --source-mode=massive_flatfiles",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Suppress live exporter progress output",
+    )
     return parser.parse_args()
+
+
+PROGRESS_PATTERN = re.compile(r"^\[(\d+)/(\d+)\]\s+")
+
+
+def _progress_logger(message: str) -> None:
+    timestamp = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    rendered = message
+    match = PROGRESS_PATTERN.match(message)
+    if match:
+        current = int(match.group(1))
+        total = max(int(match.group(2)), 1)
+        width = 20
+        filled = min(width, int(round((current / total) * width)))
+        bar = "#" * filled + "-" * (width - filled)
+        rendered = f"[{bar}] {message}"
+    print(f"{timestamp} | {rendered}", file=sys.stderr, flush=True)
 
 
 def main() -> None:
@@ -131,12 +167,26 @@ def main() -> None:
     diagnostics_output = Path(args.diagnostics_output).expanduser().resolve() if args.diagnostics_output else (
         Path(args.output).expanduser().resolve().with_name(Path(args.output).stem + "_diagnostics.json")
     )
+    validation_report = None
+    if args.validation_report:
+        validation_report = json.loads(Path(args.validation_report).expanduser().resolve().read_text(encoding="utf-8"))
+    if not args.quiet:
+        set_progress_callback(_progress_logger)
     try:
         if args.source_mode == "lean":
             payload = export_aligned_price_history(
                 args.lean_data_root,
                 symbols,
                 minimum_common_days=args.minimum_common_days,
+            )
+        elif args.source_mode == "massive_flatfiles":
+            payload = export_massive_flatfiles_price_history(
+                symbols,
+                flatfiles_root=args.flatfiles_root,
+                minimum_common_days=args.minimum_common_days,
+                recent_validation_days=args.validation_window_days,
+                minimum_recent_overlap_days=args.minimum_validator_overlap_days,
+                validation_report=validation_report,
             )
         else:
             payload = export_provider_validated_price_history(
@@ -168,6 +218,8 @@ def main() -> None:
             file=sys.stderr,
         )
         raise SystemExit(1) from exc
+    finally:
+        set_progress_callback(None)
     output_path = write_price_history_json(payload, args.output)
     print(
         json.dumps(

@@ -102,6 +102,8 @@ class SeriesValidationResult:
 
 
 ProviderFetcher = Callable[[str, int], ProviderPriceSeries]
+ProgressCallback = Callable[[str], None]
+PROGRESS_CALLBACK: ProgressCallback | None = None
 
 
 class ProviderExportError(ValueError):
@@ -110,6 +112,27 @@ class ProviderExportError(ValueError):
     def __init__(self, message: str, diagnostics: dict[str, Any]) -> None:
         super().__init__(message)
         self.diagnostics = diagnostics
+
+
+def set_progress_callback(callback: ProgressCallback | None) -> None:
+    """Install or clear the exporter progress callback."""
+
+    global PROGRESS_CALLBACK
+    PROGRESS_CALLBACK = callback
+
+
+def _emit_progress(message: str) -> None:
+    if PROGRESS_CALLBACK is not None:
+        PROGRESS_CALLBACK(message)
+
+
+def _format_progress(prefix: str, *, symbol: str | None = None, detail: str | None = None) -> str:
+    parts = [prefix]
+    if symbol:
+        parts.append(symbol)
+    if detail:
+        parts.append(detail)
+    return " | ".join(parts)
 
 
 def _candidate_paths(root: Path, symbol: str) -> list[Path]:
@@ -246,6 +269,110 @@ def export_aligned_price_history(
     }
 
 
+def export_massive_flatfiles_price_history(
+    symbols: list[str],
+    *,
+    flatfiles_root: str | Path,
+    minimum_common_days: int,
+    recent_validation_days: int = 60,
+    minimum_recent_overlap_days: int = 10,
+    validation_report: dict[str, Any] | None = None,
+) -> dict[str, object]:
+    """Export aligned total-adjusted closes from Massive flat files after validation."""
+
+    from src.stat_arb.massive_validation import (
+        apply_massive_historical_adjustments,
+        apply_series_repairs,
+        fetch_massive_corporate_actions,
+        load_massive_flatfile_close_series,
+        validate_massive_adjusted_history,
+    )
+
+    if len(symbols) < 2:
+        raise ValueError("At least two symbols are required to export stat-arb training history")
+
+    normalized_symbols = [symbol.strip().upper() for symbol in symbols if symbol.strip()]
+    if validation_report is None:
+        validation_report = validate_massive_adjusted_history(
+            normalized_symbols,
+            flatfiles_root=flatfiles_root,
+            recent_validation_days=recent_validation_days,
+            minimum_recent_overlap_days=minimum_recent_overlap_days,
+        )
+    report_symbols = validation_report.get("reports", {})
+    for symbol in normalized_symbols:
+        symbol_report = report_symbols.get(symbol)
+        if symbol_report is None:
+            raise ProviderExportError(
+                f"Massive flat-file validation report is missing symbol {symbol}",
+                diagnostics=validation_report,
+            )
+        if symbol_report.get("status") != "passed":
+            raise ProviderExportError(
+                f"Massive flat-file validation report must mark {symbol} as passed before export",
+                diagnostics=validation_report,
+            )
+
+    adjusted_series: list[ProviderPriceSeries] = []
+    symbol_provenance: dict[str, Any] = {}
+    for symbol in normalized_symbols:
+        symbol_report = validation_report["reports"][symbol]
+        raw_series = load_massive_flatfile_close_series(symbol, flatfiles_root)
+        raw_series = apply_series_repairs(raw_series, symbol_report.get("rest_repairs", []))
+        actions = fetch_massive_corporate_actions(symbol, start_date=min(raw_series.closes_by_date))
+        total_adjusted_series = apply_massive_historical_adjustments(
+            raw_series,
+            actions,
+            include_dividends=True,
+        )
+        adjusted_series.append(total_adjusted_series)
+        symbol_provenance[symbol] = {
+            "chosen_provider": "massive_flatfiles_total_adjusted",
+            "chosen_reason": "validated_massive_flatfiles",
+            "raw_day_count": len(raw_series.closes_by_date),
+            "adjusted_day_count": len(total_adjusted_series.closes_by_date),
+            "action_count": len(actions),
+            "split_count": sum(1 for action in actions if action.action_type == "split"),
+            "dividend_count": sum(1 for action in actions if action.action_type == "dividend"),
+            "validation_status": validation_report["reports"][symbol]["status"],
+            "rest_repair_count": len(symbol_report.get("rest_repairs", [])),
+        }
+
+    common_dates = set(adjusted_series[0].closes_by_date)
+    for series in adjusted_series[1:]:
+        common_dates &= set(series.closes_by_date)
+    aligned_dates = sorted(common_dates)
+    if len(aligned_dates) < minimum_common_days:
+        raise ProviderExportError(
+            f"Only {len(aligned_dates)} common daily bars were found across the Massive flat-file universe; "
+            f"at least {minimum_common_days} are required",
+            diagnostics={
+                "export_mode": "massive_flatfiles_validated",
+                "symbols_requested": normalized_symbols,
+                "symbols_included": [series.symbol for series in adjusted_series],
+                "common_days": len(aligned_dates),
+                "validation_report": validation_report,
+            },
+        )
+
+    return {
+        "calendar": aligned_dates,
+        "price_history": {
+            series.symbol: [series.closes_by_date[date] for date in aligned_dates]
+            for series in adjusted_series
+        },
+        "metadata": {
+            "export_mode": "massive_flatfiles_validated",
+            "symbols": [series.symbol for series in adjusted_series],
+            "symbols_included": [series.symbol for series in adjusted_series],
+            "common_days": len(aligned_dates),
+            "flatfiles_root": str(Path(flatfiles_root).expanduser().resolve()),
+            "symbol_provenance": symbol_provenance,
+            "validation_report": validation_report,
+        },
+    }
+
+
 def write_price_history_json(payload: dict[str, object], output_path: str | Path) -> Path:
     """Persist aligned price history to the trainer input format."""
 
@@ -273,10 +400,18 @@ def _fetch_massive_price_series(symbol: str, lookback_days: int) -> ProviderPric
     bars_by_date: dict[str, dict[str, float]] = {}
     request_count = 0
     chunk_count = 0
+    _emit_progress(_format_progress("provider=massive start", symbol=symbol, detail=f"lookback_days={lookback_days}"))
 
     while current_end >= earliest_start and len(bars_by_date) < lookback_days:
         chunk_count += 1
         chunk_start = max(earliest_start, current_end.fromordinal(current_end.toordinal() - chunk_calendar_days))
+        _emit_progress(
+            _format_progress(
+                "provider=massive chunk",
+                symbol=symbol,
+                detail=f"{chunk_count} range={chunk_start.isoformat()}..{current_end.isoformat()} current_bars={len(bars_by_date)}",
+            )
+        )
         next_target: str | None = adapter._build_aggregates_path(symbol, chunk_start.isoformat(), current_end.isoformat())
         request_params: dict[str, Any] | None = {
             "adjusted": "true",
@@ -295,6 +430,13 @@ def _fetch_massive_price_series(symbol: str, lookback_days: int) -> ProviderPric
             for item in adapter._parse_aggregate_payload(payload):
                 trading_date = _timestamp_to_trading_date(item["timestamp"])
                 bars_by_date[trading_date] = item
+            _emit_progress(
+                _format_progress(
+                    "provider=massive page",
+                    symbol=symbol,
+                    detail=f"requests={request_count} bars={len(bars_by_date)}",
+                )
+            )
             next_target = payload.get("next_url")
             request_params = None
 
@@ -308,6 +450,13 @@ def _fetch_massive_price_series(symbol: str, lookback_days: int) -> ProviderPric
         raise ProviderError(
             f"Insufficient Massive daily bars returned for {symbol}: required={lookback_days} received={len(parsed_results)}"
         )
+    _emit_progress(
+        _format_progress(
+            "provider=massive done",
+            symbol=symbol,
+            detail=f"bars={len(parsed_results)} requests={request_count} chunks={chunk_count}",
+        )
+    )
     closes_by_date = {_timestamp_to_trading_date(item["timestamp"]): float(item["close"]) for item in parsed_results}
     volumes_by_date = {_timestamp_to_trading_date(item["timestamp"]): float(item["volume"]) for item in parsed_results}
     return ProviderPriceSeries(
@@ -329,6 +478,7 @@ def _fetch_massive_price_series(symbol: str, lookback_days: int) -> ProviderPric
 
 def _fetch_alpaca_price_series(symbol: str, lookback_days: int) -> ProviderPriceSeries:
     adapter = AlpacaMarketDataAdapter()
+    _emit_progress(_format_progress("provider=alpaca start", symbol=symbol, detail=f"lookback_days={lookback_days}"))
     end_at = datetime.now(UTC)
     start_at = end_at - timedelta(days=max(lookback_days * 3, lookback_days + 45))
     payload = adapter._request(
@@ -348,6 +498,7 @@ def _fetch_alpaca_price_series(symbol: str, lookback_days: int) -> ProviderPrice
         raise ProviderError(
             f"Insufficient Alpaca daily bars returned for {symbol}: required={lookback_days} received={len(normalized)}"
         )
+    _emit_progress(_format_progress("provider=alpaca done", symbol=symbol, detail=f"bars={len(normalized)}"))
     closes_by_date = {_timestamp_to_trading_date(item["timestamp"]): float(item["close"]) for item in normalized}
     volumes_by_date = {_timestamp_to_trading_date(item["timestamp"]): float(item["volume"]) for item in normalized}
     return ProviderPriceSeries(
@@ -366,6 +517,9 @@ def _fetch_alpaca_price_series(symbol: str, lookback_days: int) -> ProviderPrice
 
 def _fetch_alpha_vantage_price_series(symbol: str, lookback_days: int) -> ProviderPriceSeries:
     adapter = AlphaVantageAdapter()
+    _emit_progress(
+        _format_progress("provider=alpha_vantage start", symbol=symbol, detail=f"lookback_days={lookback_days}")
+    )
     payload = adapter._request(
         {
             "function": "TIME_SERIES_DAILY_ADJUSTED",
@@ -378,6 +532,7 @@ def _fetch_alpha_vantage_price_series(symbol: str, lookback_days: int) -> Provid
         raise ProviderError(
             f"Insufficient Alpha Vantage daily bars returned for {symbol}: required={lookback_days} received={len(normalized)}"
         )
+    _emit_progress(_format_progress("provider=alpha_vantage done", symbol=symbol, detail=f"bars={len(normalized)}"))
     closes_by_date = {_timestamp_to_trading_date(item["timestamp"]): float(item["close"]) for item in normalized}
     volumes_by_date = {_timestamp_to_trading_date(item["timestamp"]): float(item["volume"]) for item in normalized}
     return ProviderPriceSeries(
@@ -418,12 +573,43 @@ def _request_massive_payload_with_backoff(
     last_error: str | None = None
 
     for attempt in range(max_retries + 1):
-        response = adapter.session.get(
-            url,
-            params=payload,
-            headers={"Authorization": f"Bearer {adapter.api_key}"},
-            timeout=adapter.timeout_seconds,
-        )
+        try:
+            response = adapter.session.get(
+                url,
+                params=payload,
+                headers={"Authorization": f"Bearer {adapter.api_key}"},
+                timeout=adapter.timeout_seconds,
+            )
+        except requests.Timeout as exc:
+            last_error = f"Massive request timed out for {url}"
+            if attempt == max_retries:
+                raise ProviderError(
+                    f"Massive request failed after {max_retries + 1} attempts due to timeout: {url}"
+                ) from exc
+            _emit_progress(
+                _format_progress(
+                    "provider=massive timeout",
+                    detail=f"attempt={attempt + 1}/{max_retries + 1} wait={delay_seconds:.1f}s",
+                )
+            )
+            time.sleep(delay_seconds)
+            delay_seconds = min(delay_seconds * 2.0, 30.0)
+            continue
+        except requests.RequestException as exc:
+            last_error = f"Massive request transport failed for {url}: {exc}"
+            if attempt == max_retries:
+                raise ProviderError(
+                    f"Massive request failed after {max_retries + 1} attempts due to transport error: {url}"
+                ) from exc
+            _emit_progress(
+                _format_progress(
+                    "provider=massive transport_error",
+                    detail=f"attempt={attempt + 1}/{max_retries + 1} wait={delay_seconds:.1f}s",
+                )
+            )
+            time.sleep(delay_seconds)
+            delay_seconds = min(delay_seconds * 2.0, 30.0)
+            continue
         if response.status_code == 429:
             last_error = f"Massive request rate-limited for {url}"
             if attempt == max_retries:
@@ -435,6 +621,12 @@ def _request_massive_payload_with_backoff(
                 retry_after_seconds = float(retry_after_header) if retry_after_header is not None else delay_seconds
             except ValueError:
                 retry_after_seconds = delay_seconds
+            _emit_progress(
+                _format_progress(
+                    "provider=massive rate_limited",
+                    detail=f"attempt={attempt + 1}/{max_retries + 1} wait={max(retry_after_seconds, 0.0):.1f}s",
+                )
+            )
             time.sleep(max(retry_after_seconds, 0.0))
             delay_seconds = min(delay_seconds * 2.0, 30.0)
             continue
@@ -680,6 +872,14 @@ def export_provider_validated_price_history(
         symbol = raw_symbol.strip().upper()
         if not symbol:
             continue
+        current_index = len(chosen_series) + len(excluded_symbols) + 1
+        _emit_progress(
+            _format_progress(
+                f"[{current_index}/{len(requested_symbols)}] symbol_start",
+                symbol=symbol,
+                detail=f"primary={primary_provider} validator={validator_provider} repair={repair_provider}",
+            )
+        )
 
         attempts: dict[str, Any] = {}
         primary: ProviderPriceSeries | None = None
@@ -688,11 +888,25 @@ def export_provider_validated_price_history(
             primary = _fetch_series(primary_provider, symbol, lookback_days)
             primary_quality = run_series_quality_check(primary, minimum_history_days=minimum_history_days)
             attempts["primary"] = _series_summary(primary, primary_quality)
+            _emit_progress(
+                _format_progress(
+                    f"[{current_index}/{len(requested_symbols)}] primary_ok",
+                    symbol=symbol,
+                    detail=f"days={primary_quality.day_count}",
+                )
+            )
         except Exception as exc:
             attempts["primary"] = {
                 "provider": primary_provider,
                 "error": str(exc),
             }
+            _emit_progress(
+                _format_progress(
+                    f"[{current_index}/{len(requested_symbols)}] primary_failed",
+                    symbol=symbol,
+                    detail=str(exc),
+                )
+            )
 
         validator_error: str | None = None
         validator: ProviderPriceSeries | None = None
@@ -700,8 +914,22 @@ def export_provider_validated_price_history(
             validator = _fetch_series(validator_provider, symbol, lookback_days)
             validator_quality = run_series_quality_check(validator, minimum_history_days=minimum_history_days)
             attempts["validator"] = _series_summary(validator, validator_quality)
+            _emit_progress(
+                _format_progress(
+                    f"[{current_index}/{len(requested_symbols)}] validator_ok",
+                    symbol=symbol,
+                    detail=f"days={validator_quality.day_count}",
+                )
+            )
         except Exception as exc:
             validator_error = str(exc)
+            _emit_progress(
+                _format_progress(
+                    f"[{current_index}/{len(requested_symbols)}] validator_failed",
+                    symbol=symbol,
+                    detail=validator_error,
+                )
+            )
 
         primary_validation: SeriesValidationResult | None = None
         if (
@@ -720,6 +948,13 @@ def export_provider_validated_price_history(
                 max_max_abs_return_drift_bps=max_max_abs_return_drift_bps,
                 max_latest_close_drift_bps=max_latest_close_drift_bps,
             )
+            _emit_progress(
+                _format_progress(
+                    f"[{current_index}/{len(requested_symbols)}] primary_validation",
+                    symbol=symbol,
+                    detail=f"passed={primary_validation.passed} overlap={primary_validation.overlap_days}",
+                )
+            )
 
         chosen: ProviderPriceSeries | None = None
         chosen_reason: str | None = None
@@ -734,6 +969,13 @@ def export_provider_validated_price_history(
                 repair = _fetch_series(repair_provider, symbol, lookback_days)
                 repair_quality = run_series_quality_check(repair, minimum_history_days=minimum_history_days)
                 attempts["repair"] = _series_summary(repair, repair_quality)
+                _emit_progress(
+                    _format_progress(
+                        f"[{current_index}/{len(requested_symbols)}] repair_ok",
+                        symbol=symbol,
+                        detail=f"days={repair_quality.day_count}",
+                    )
+                )
                 if repair_quality.passed and validator is not None and attempts["validator"]["quality"]["passed"]:
                     repair_validation = compare_series_against_validator(
                         repair,
@@ -744,11 +986,25 @@ def export_provider_validated_price_history(
                         max_max_abs_return_drift_bps=max_max_abs_return_drift_bps,
                         max_latest_close_drift_bps=max_latest_close_drift_bps,
                     )
+                    _emit_progress(
+                        _format_progress(
+                            f"[{current_index}/{len(requested_symbols)}] repair_validation",
+                            symbol=symbol,
+                            detail=f"passed={repair_validation.passed} overlap={repair_validation.overlap_days}",
+                        )
+                    )
                 if repair_quality.passed and repair_validation and repair_validation.passed:
                     chosen = repair
                     chosen_reason = "repair_validated"
             except Exception as exc:
                 attempts["repair"] = {"provider": repair_provider, "error": str(exc)}
+                _emit_progress(
+                    _format_progress(
+                        f"[{current_index}/{len(requested_symbols)}] repair_failed",
+                        symbol=symbol,
+                        detail=str(exc),
+                    )
+                )
 
         if chosen is None:
             excluded_symbols[symbol] = {
@@ -761,6 +1017,13 @@ def export_provider_validated_price_history(
                     "repair_validation": repair_validation.as_dict() if repair_validation else None,
                 },
             }
+            _emit_progress(
+                _format_progress(
+                    f"[{current_index}/{len(requested_symbols)}] symbol_excluded",
+                    symbol=symbol,
+                    detail="no_validated_series",
+                )
+            )
             continue
 
         chosen_series.append(chosen)
@@ -775,6 +1038,13 @@ def export_provider_validated_price_history(
                 "repair_validation": repair_validation.as_dict() if repair_validation else None,
             },
         }
+        _emit_progress(
+            _format_progress(
+                f"[{current_index}/{len(requested_symbols)}] symbol_selected",
+                symbol=symbol,
+                detail=f"provider={chosen.provider} reason={chosen_reason}",
+            )
+        )
 
     if len(chosen_series) < 2:
         diagnostics = _build_provider_export_diagnostics(

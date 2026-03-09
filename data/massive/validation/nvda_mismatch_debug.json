@@ -1,0 +1,491 @@
+{
+  "action_count": 16,
+  "date_range": {
+    "end": "2026-03-06",
+    "start": "2022-06-01"
+  },
+  "flatfiles_root": "/mnt/nvme_data/shared/quant_gpt/data/massive/flatfiles/us_stocks_sip/day_aggs_v1",
+  "symbol": "NVDA",
+  "top_rest_mismatches": [
+    {
+      "adjusted_close": 18.13339,
+      "adjustment_factor": 0.098981387,
+      "close_drift_bps": 101.861318,
+      "future_actions": [
+        {
+          "action_date": "2022-06-08",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998237,
+          "source_id": "E1aa7c1188561cf7f1142b4bf007bae4d919d69c88a298e2298e6537bf5fed8c7",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2022-09-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998448,
+          "source_id": "Ea31621bc6fa6b570fafbf8efe3f05c7f8edbec90e7bb1cc5062872de42273ef7",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2022-11-30",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998744,
+          "source_id": "Ee0c141be5cd2f336c44f7a7989be80b75a142632538579e1a0126b5818c57d64",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-03-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.999,
+          "source_id": "Ee04b0320051622a68d0eb929592528842bac2c37e60498d6490c4fdc67900ae0",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-06-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.99917,
+          "source_id": "E9712dbfd03c8439c3d6b6336739b60836d7fba78d3f1962b271f4294f8a26145",
+          "symbol": "NVDA"
+        }
+      ],
+      "raw_close": 183.2,
+      "return_drift_bps": null,
+      "series_return": null,
+      "trading_date": "2022-06-01",
+      "validator_close": 18.32,
+      "validator_return": null
+    },
+    {
+      "adjusted_close": 19.392433,
+      "adjustment_factor": 0.098981387,
+      "close_drift_bps": 101.861318,
+      "future_actions": [
+        {
+          "action_date": "2022-06-08",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998237,
+          "source_id": "E1aa7c1188561cf7f1142b4bf007bae4d919d69c88a298e2298e6537bf5fed8c7",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2022-09-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998448,
+          "source_id": "Ea31621bc6fa6b570fafbf8efe3f05c7f8edbec90e7bb1cc5062872de42273ef7",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2022-11-30",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998744,
+          "source_id": "Ee0c141be5cd2f336c44f7a7989be80b75a142632538579e1a0126b5818c57d64",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-03-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.999,
+          "source_id": "Ee04b0320051622a68d0eb929592528842bac2c37e60498d6490c4fdc67900ae0",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-06-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.99917,
+          "source_id": "E9712dbfd03c8439c3d6b6336739b60836d7fba78d3f1962b271f4294f8a26145",
+          "symbol": "NVDA"
+        }
+      ],
+      "raw_close": 195.92,
+      "return_drift_bps": 0.0,
+      "series_return": 0.06712796,
+      "trading_date": "2022-06-02",
+      "validator_close": 19.592,
+      "validator_return": 0.06712796
+    },
+    {
+      "adjusted_close": 18.529316,
+      "adjustment_factor": 0.098981387,
+      "close_drift_bps": 101.861318,
+      "future_actions": [
+        {
+          "action_date": "2022-06-08",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998237,
+          "source_id": "E1aa7c1188561cf7f1142b4bf007bae4d919d69c88a298e2298e6537bf5fed8c7",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2022-09-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998448,
+          "source_id": "Ea31621bc6fa6b570fafbf8efe3f05c7f8edbec90e7bb1cc5062872de42273ef7",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2022-11-30",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998744,
+          "source_id": "Ee0c141be5cd2f336c44f7a7989be80b75a142632538579e1a0126b5818c57d64",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-03-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.999,
+          "source_id": "Ee04b0320051622a68d0eb929592528842bac2c37e60498d6490c4fdc67900ae0",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-06-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.99917,
+          "source_id": "E9712dbfd03c8439c3d6b6336739b60836d7fba78d3f1962b271f4294f8a26145",
+          "symbol": "NVDA"
+        }
+      ],
+      "raw_close": 187.2,
+      "return_drift_bps": 0.0,
+      "series_return": -0.045528849,
+      "trading_date": "2022-06-03",
+      "validator_close": 18.72,
+      "validator_return": -0.045528849
+    },
+    {
+      "adjusted_close": 18.594643,
+      "adjustment_factor": 0.098981387,
+      "close_drift_bps": 101.861318,
+      "future_actions": [
+        {
+          "action_date": "2022-06-08",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998237,
+          "source_id": "E1aa7c1188561cf7f1142b4bf007bae4d919d69c88a298e2298e6537bf5fed8c7",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2022-09-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998448,
+          "source_id": "Ea31621bc6fa6b570fafbf8efe3f05c7f8edbec90e7bb1cc5062872de42273ef7",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2022-11-30",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998744,
+          "source_id": "Ee0c141be5cd2f336c44f7a7989be80b75a142632538579e1a0126b5818c57d64",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-03-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.999,
+          "source_id": "Ee04b0320051622a68d0eb929592528842bac2c37e60498d6490c4fdc67900ae0",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-06-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.99917,
+          "source_id": "E9712dbfd03c8439c3d6b6336739b60836d7fba78d3f1962b271f4294f8a26145",
+          "symbol": "NVDA"
+        }
+      ],
+      "raw_close": 187.86,
+      "return_drift_bps": 0.0,
+      "series_return": 0.003519441,
+      "trading_date": "2022-06-06",
+      "validator_close": 18.786,
+      "validator_return": 0.003519441
+    },
+    {
+      "adjusted_close": 18.733217,
+      "adjustment_factor": 0.098981387,
+      "close_drift_bps": 101.861318,
+      "future_actions": [
+        {
+          "action_date": "2022-06-08",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998237,
+          "source_id": "E1aa7c1188561cf7f1142b4bf007bae4d919d69c88a298e2298e6537bf5fed8c7",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2022-09-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998448,
+          "source_id": "Ea31621bc6fa6b570fafbf8efe3f05c7f8edbec90e7bb1cc5062872de42273ef7",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2022-11-30",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998744,
+          "source_id": "Ee0c141be5cd2f336c44f7a7989be80b75a142632538579e1a0126b5818c57d64",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-03-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.999,
+          "source_id": "Ee04b0320051622a68d0eb929592528842bac2c37e60498d6490c4fdc67900ae0",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-06-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.99917,
+          "source_id": "E9712dbfd03c8439c3d6b6336739b60836d7fba78d3f1962b271f4294f8a26145",
+          "symbol": "NVDA"
+        }
+      ],
+      "raw_close": 189.26,
+      "return_drift_bps": 0.0,
+      "series_return": 0.007424727,
+      "trading_date": "2022-06-07",
+      "validator_close": 18.926,
+      "validator_return": 0.007424727
+    },
+    {
+      "adjusted_close": 16.848621,
+      "adjustment_factor": 0.099156199,
+      "close_drift_bps": 84.38008,
+      "future_actions": [
+        {
+          "action_date": "2022-09-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998448,
+          "source_id": "Ea31621bc6fa6b570fafbf8efe3f05c7f8edbec90e7bb1cc5062872de42273ef7",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2022-11-30",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998744,
+          "source_id": "Ee0c141be5cd2f336c44f7a7989be80b75a142632538579e1a0126b5818c57d64",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-03-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.999,
+          "source_id": "Ee04b0320051622a68d0eb929592528842bac2c37e60498d6490c4fdc67900ae0",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-06-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.99917,
+          "source_id": "E9712dbfd03c8439c3d6b6336739b60836d7fba78d3f1962b271f4294f8a26145",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-09-06",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.999273,
+          "source_id": "E9d1274d083eb00724a8f513b843d3af200baf18f4f888e002c3e1f28881b2b60",
+          "symbol": "NVDA"
+        }
+      ],
+      "raw_close": 169.92,
+      "return_drift_bps": 0.0,
+      "series_return": 0.053861263,
+      "trading_date": "2022-07-19",
+      "validator_close": 16.992,
+      "validator_return": 0.053861263
+    },
+    {
+      "adjusted_close": 14.954738,
+      "adjustment_factor": 0.099156199,
+      "close_drift_bps": 84.38008,
+      "future_actions": [
+        {
+          "action_date": "2022-09-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998448,
+          "source_id": "Ea31621bc6fa6b570fafbf8efe3f05c7f8edbec90e7bb1cc5062872de42273ef7",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2022-11-30",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998744,
+          "source_id": "Ee0c141be5cd2f336c44f7a7989be80b75a142632538579e1a0126b5818c57d64",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-03-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.999,
+          "source_id": "Ee04b0320051622a68d0eb929592528842bac2c37e60498d6490c4fdc67900ae0",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-06-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.99917,
+          "source_id": "E9712dbfd03c8439c3d6b6336739b60836d7fba78d3f1962b271f4294f8a26145",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-09-06",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.999273,
+          "source_id": "E9d1274d083eb00724a8f513b843d3af200baf18f4f888e002c3e1f28881b2b60",
+          "symbol": "NVDA"
+        }
+      ],
+      "raw_close": 150.82,
+      "return_drift_bps": 0.0,
+      "series_return": -0.004630557,
+      "trading_date": "2022-07-12",
+      "validator_close": 15.082,
+      "validator_return": -0.004630557
+    },
+    {
+      "adjusted_close": 16.981491,
+      "adjustment_factor": 0.099156199,
+      "close_drift_bps": 84.38008,
+      "future_actions": [
+        {
+          "action_date": "2022-09-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998448,
+          "source_id": "Ea31621bc6fa6b570fafbf8efe3f05c7f8edbec90e7bb1cc5062872de42273ef7",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2022-11-30",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998744,
+          "source_id": "Ee0c141be5cd2f336c44f7a7989be80b75a142632538579e1a0126b5818c57d64",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-03-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.999,
+          "source_id": "Ee04b0320051622a68d0eb929592528842bac2c37e60498d6490c4fdc67900ae0",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-06-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.99917,
+          "source_id": "E9712dbfd03c8439c3d6b6336739b60836d7fba78d3f1962b271f4294f8a26145",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-09-06",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.999273,
+          "source_id": "E9d1274d083eb00724a8f513b843d3af200baf18f4f888e002c3e1f28881b2b60",
+          "symbol": "NVDA"
+        }
+      ],
+      "raw_close": 171.26,
+      "return_drift_bps": 0.0,
+      "series_return": 0.054044514,
+      "trading_date": "2022-06-24",
+      "validator_close": 17.126,
+      "validator_return": 0.054044514
+    },
+    {
+      "adjusted_close": 18.00974,
+      "adjustment_factor": 0.099156199,
+      "close_drift_bps": 84.38008,
+      "future_actions": [
+        {
+          "action_date": "2022-09-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998448,
+          "source_id": "Ea31621bc6fa6b570fafbf8efe3f05c7f8edbec90e7bb1cc5062872de42273ef7",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2022-11-30",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998744,
+          "source_id": "Ee0c141be5cd2f336c44f7a7989be80b75a142632538579e1a0126b5818c57d64",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-03-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.999,
+          "source_id": "Ee04b0320051622a68d0eb929592528842bac2c37e60498d6490c4fdc67900ae0",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-06-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.99917,
+          "source_id": "E9712dbfd03c8439c3d6b6336739b60836d7fba78d3f1962b271f4294f8a26145",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-09-06",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.999273,
+          "source_id": "E9d1274d083eb00724a8f513b843d3af200baf18f4f888e002c3e1f28881b2b60",
+          "symbol": "NVDA"
+        }
+      ],
+      "raw_close": 181.63,
+      "return_drift_bps": 0.0,
+      "series_return": 0.009904084,
+      "trading_date": "2022-07-29",
+      "validator_close": 18.163,
+      "validator_return": 0.009904084
+    },
+    {
+      "adjusted_close": 16.088093,
+      "adjustment_factor": 0.099156199,
+      "close_drift_bps": 84.38008,
+      "future_actions": [
+        {
+          "action_date": "2022-09-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998448,
+          "source_id": "Ea31621bc6fa6b570fafbf8efe3f05c7f8edbec90e7bb1cc5062872de42273ef7",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2022-11-30",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.998744,
+          "source_id": "Ee0c141be5cd2f336c44f7a7989be80b75a142632538579e1a0126b5818c57d64",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-03-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.999,
+          "source_id": "Ee04b0320051622a68d0eb929592528842bac2c37e60498d6490c4fdc67900ae0",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-06-07",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.99917,
+          "source_id": "E9712dbfd03c8439c3d6b6336739b60836d7fba78d3f1962b271f4294f8a26145",
+          "symbol": "NVDA"
+        },
+        {
+          "action_date": "2023-09-06",
+          "action_type": "dividend",
+          "historical_adjustment_factor": 0.999273,
+          "source_id": "E9d1274d083eb00724a8f513b843d3af200baf18f4f888e002c3e1f28881b2b60",
+          "symbol": "NVDA"
+        }
+      ],
+      "raw_close": 162.25,
+      "return_drift_bps": 0.0,
+      "series_return": -0.008286069,
+      "trading_date": "2022-06-23",
+      "validator_close": 16.225,
+      "validator_return": -0.008286069
+    }
+  ]
+}

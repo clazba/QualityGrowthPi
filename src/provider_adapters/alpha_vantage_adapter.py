@@ -50,6 +50,10 @@ class AlphaVantageAdapter(MarketDataProvider):
         except requests.RequestException as exc:
             raise ProviderError(f"Alpha Vantage request failed: {exc}") from exc
         decoded = response.json()
+        if "Note" in decoded:
+            raise ProviderError(f"Alpha Vantage throttled: {decoded['Note']}")
+        if "Information" in decoded:
+            raise ProviderError(f"Alpha Vantage information response: {decoded['Information']}")
         if "Error Message" in decoded:
             raise ProviderError(f"Alpha Vantage request returned an error: {decoded['Error Message']}")
         return decoded
@@ -161,7 +165,14 @@ class AlphaVantageNewsProvider(NewsProvider):
             response.raise_for_status()
         except requests.RequestException as exc:
             raise ProviderError(f"Alpha Vantage news request failed: {exc}") from exc
-        return response.json()
+        decoded = response.json()
+        if "Note" in decoded:
+            raise ProviderError(f"Alpha Vantage throttled: {decoded['Note']}")
+        if "Information" in decoded:
+            raise ProviderError(f"Alpha Vantage information response: {decoded['Information']}")
+        if "Error Message" in decoded:
+            raise ProviderError(f"Alpha Vantage news request returned an error: {decoded['Error Message']}")
+        return decoded
 
     @staticmethod
     def _parse_time_published(raw_value: str) -> datetime:
